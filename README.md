@@ -1,4 +1,4 @@
-# Shiny Watcher
+# MAD Plugin - Shiny Watcher
 
 Get support on this [Discord Server](https://discord.gg/cMZs5tk)
 
@@ -9,21 +9,30 @@ Notifications will always be: `Name (IV%) until Time (time left)\nWorker name (a
 ![Screenshot](https://i.imgur.com/kvUSoI4.png)
 
 ## Notes
-- Only works with python3.6 and above
 - MAD and Discord only
-- Credits to [Naji](https://github.com/na-ji/mad-shiny-notifications) who inspired me to do this
+- only works with MAD plugin system
+- Credits to [CCEV](https://github.com/ccev/shinywatcher) who created the original version of shinywatcher
 
 ## Getting Started
-- `cp config.ini.example config.ini && cp workers.json.example workers.json`
-- Fill out config.ini and workers.json (It's explained below what to fill in)
-- `python3 shinywatcher.py`
-- The script does not loop itself. You can use pm2 (`pm2 start shinywatcher.py --interpreter=python3 --restart-delay=10000`) to loop it or make a cronjob to only have it send notifications between work and sleep. Make sure to use `cd /path/shinywatcher/ && python3 shinywatcher.py` in it
+- import Plugin via MADmin website at System > MAD Plugins
+- `cp plugin.ini.example plugin.ini`
+- Fill out plugin.ini (It's explained below what to fill in)
+- restart MAD to activate the plugin configuration
 
 ## What to fill in
 ### Config
+copy plugin.ini.example to plugin.ini and adjust it with your data
 - `ONLY_SHOW_WORKERS` Leave blank if you want notifications from all workers. If you only want them from certain Accounts, follow the format in the example
 - `EXCLUDE_MONS` Filter out Mons you already have enough Shinies of. Follow the example format!
 - `OS` Set your notifications to `android` or `ios` mode. On Android, messages have an embed contaning the coords. For iOS an extra message containing coords will be sent
-### workers.json
-- What you put in here will be used as the account name in your notifications
-- To set it up, just follow the example. `"{Worker Name}": "{Account Name/E-Mail}"` and repeat
+###  plugin.ini
+
+```
+[plugin]
+active = true
+webhookurl: https://discord.com/api/webhooks/xxxxxxxx   
+language = de
+os = android
+only_show_workers = ATV01,ATV19,ATV34
+exlude_mons = 1,4,7
+```

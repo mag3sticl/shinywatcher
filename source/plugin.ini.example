@@ -1,0 +1,7 @@
+[plugin]
+active = true
+discord_webhookurl = 
+language = de/en
+os = android/ios
+only_show_workers = 
+exlude_mons = 
