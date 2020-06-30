@@ -14,7 +14,7 @@ Notifications will always be: `Name (IV%) until Time (time left)\nWorker name (a
 - Credits to [CCEV](https://github.com/ccev/shinywatcher) who created the original version of shinywatcher
 
 ## Getting Started
-- import Plugin via MADmin website at System > MAD Plugins
+- import Plugin `ShinyWatcher.mp` via MADmin website at System > MAD Plugins
 - `cp plugin.ini.example plugin.ini`
 - Fill out plugin.ini (It's explained below what to fill in)
 - restart MAD to activate the plugin configuration
