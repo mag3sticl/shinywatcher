@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block scripts %}
+<style>
+    code {
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    border-left: 3px solid #f36d33;
+    color: #666;
+    page-break-inside: avoid;
+    font-family: 'Courier New';
+    line-height: 1.6;
+    max-width: 100%;
+    overflow: auto;
+    padding: 1em 1.5em;
+    display: block;
+    word-wrap: break-word;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>MAD plugin - ShinyWatcher</h2>
+<strong>Legend</strong><br>
+<ul>
+    <li><a href="#notes">Notes</a></li>
+    <li><a href="#configplugin">Config Plugin</a></li>
+    <li><a href="#example">Example</a></li>
+</ul>
+Shiny Watcher checks your DB for active Shinies and then sends a notification to Discord if it finds any. It allows to filter out Pokemon and Workers as well as connect a Login E-Mail to every worker.
+<br>
+Notifications will always be:<br>
+Name (IV%) until Time (time left)\nWorker name (account/email). 
+<br>
+The coordinates are in an embed so you can copy them by pressing for ~2 seconds on an Android device. Fast and easy. There's also an option to optimize notifications for iOS.<br><br>
+<h3 id="notes">Notes</h3>
+<code>
+    &nbsp;&nbsp;&nbsp;- MAD and Discord only<br>
+    &nbsp;&nbsp;&nbsp;- only works with MAD plugin system<br>
+    &nbsp;&nbsp;&nbsp;- Credits to ccev who created the original version of shinywatcher https://github.com/ccev/shinywatcher <br>
+</code><br><br>
+<h3 id="configplugin">Config Plugin</h3>
+<code>
+<br>
+copy plugin.ini.example to plugin.ini and adjust it with your data<br>
+<br>
+- ONLY_SHOW_WORKERS Leave blank if you want notifications from all workers. If you only want them from certain Accounts, follow the format in the example<br>
+- EXCLUDE_MONS Filter out Mons you already have enough Shinies of. Follow the example format!<br>
+- OS Set your notifications to android or ios mode. On Android, messages have an embed contaning the coords. For iOS an extra message containing coords will be sent<br>
+</code><br><br>
+    &nbsp;plugin.ini:
+<code>
+    &nbsp;&nbsp;&nbsp;[plugin]<br>
+    &nbsp;&nbsp;&nbsp;active = true<br>
+    &nbsp;&nbsp;&nbsp;webhookurl: https://discord.com/api/webhooks/xxxxxxxx<br>
+    &nbsp;&nbsp;&nbsp;language = de<br>
+    &nbsp;&nbsp;&nbsp;os = android<br>
+    &nbsp;&nbsp;&nbsp;only_show_workers = ATV01,ATV19,ATV34<br>
+    &nbsp;&nbsp;&nbsp;exlude_mons = 1,4,7<br>
+</code><br><br>
+<h3 id="example">Example</h3>
+<br><center>
+<img src="https://camo.githubusercontent.com/b6404043b54c297a4677c93b8e972c2a4bdc37e4/68747470733a2f2f692e696d6775722e636f6d2f6b7655536f49342e706e67">
+</center><br><br>
+{% endblock %}
