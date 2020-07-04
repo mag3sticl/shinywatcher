@@ -114,7 +114,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
             if devicesettings['settings'].get('logintype', '') == 'google':
                 pogoaccount = devicesettings['settings'].get("ggl_login_mail", "")
             elif devicesettings['settings'].get('logintype', '') == 'ptc':
-                pogoaccount = ((devicesettings['settings'].get("ptc_login", "")).split('/'))[0]
+                pogoaccount = ((devicesettings['settings'].get("ptc_login", "")).split(','))[0]
             self._workers[worker] = pogoaccount
 
         worker_filter = ""
