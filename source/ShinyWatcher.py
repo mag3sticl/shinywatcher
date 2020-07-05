@@ -109,12 +109,14 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
     def MadShinyWatcher(self):
         devicemapping = self._mad['mapping_manager'].get_all_devicemappings()
+        self._mad['logger'].debug(devicemapping)
         for worker in devicemapping:
             devicesettings = devicemapping[worker]
+            self._mad['logger'].debug(devicesettings)
             if devicesettings['settings'].get('logintype', '') == 'google':
-                pogoaccount = devicesettings['settings'].get("ggl_login_mail", "")
+                pogoaccount = devicesettings['settings'].get("ggl_login_mail", "unknown")
             elif devicesettings['settings'].get('logintype', '') == 'ptc':
-                pogoaccount = ((devicesettings['settings'].get("ptc_login", "")).split(','))[0]
+                pogoaccount = ((devicesettings['settings'].get("ptc_login", "unknown")).split(','))[0]
             self._workers[worker] = pogoaccount
 
         worker_filter = ""
@@ -195,7 +197,10 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
                 time.sleep(2)
 
+            if datetime.datetime.now().hour == 3 and datetime.datetime.now().minute < 10:
+                self._shinyhistory.clear()
             time.sleep(60)
+
 
     @auth_required
     def mswreadme_route(self):
