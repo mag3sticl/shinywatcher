@@ -181,7 +181,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                         "avatar_url": mon_img,
                         "content": f"**{mon_name}** ({iv}%, lv{mon_level}) until **{end}** ({timeleft[0]}m {timeleft[1]}s)\n{worker} ({email})"
                     }
-                    result = requests.post(config['wh'], json=data)
+                    result = requests.post(self._webhookurl, json=data)
                     self._mad['logger'].info(result)
         
                     time.sleep(1)
