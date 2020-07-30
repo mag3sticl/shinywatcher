@@ -77,6 +77,8 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._only_show_workers = self._pluginconfig.get("plugin", "only_show_workers", fallback=None)  
         self._exlude_mons = self._pluginconfig.get("plugin", "exlude_mons", fallback=None)
         self._webhookurl = self._pluginconfig.get("plugin", "discord_webhookurl", fallback=None)
+        self._mask_mail = self._pluginconfig.get("plugin", "mask_mail", fallback='no')
+        self._pinguser = self._pluginconfig.get("plugin", "pinguser", fallback='no')
 
         self.mswThread()
 
@@ -106,6 +108,15 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
             if word in language_file:
                 return language_file[word]
         return word
+
+    def do_mask_email(self, email):
+        #finding the location of @
+        lo = email.find('@')
+        if lo > 0:
+            memail = email[0] + email[1] + "*****" + email[lo-2] + email[lo-1:]
+        else:
+            memail = email[0] + email[1] + email[2] + "*****" + email[lo-3] + email[lo-2] + email[lo-1]
+        return memail            
 
     def MadShinyWatcher(self):
         devicemapping = self._mad['mapping_manager'].get_all_devicemappings()
@@ -154,7 +165,12 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 worker = result['worker']
 				
                 email = ""
-                email = self._workers[worker]    
+                email = self._workers[worker]
+                if self._mask_mail == 'yes':
+                    email = self.do_mask_email(email)
+
+                if self._pinguser == 'yes':
+                    worker = self._pluginconfig.get("pingusermapping", worker, fallback=worker)				
 		
                 if result['cp_multiplier'] < 0.734:
                     mon_level = round(58.35178527 * result['cp_multiplier'] * result['cp_multiplier'] - 2.838007664 * result['cp_multiplier'] + 0.8539209906)
@@ -189,6 +205,29 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                         "username": mon_name,
                         "avatar_url": mon_img,
                         "content": f"```{lat},{lon}```"
+                    }
+                    result = requests.post(self._webhookurl, json=data)
+                    self._mad['logger'].info(result)
+        
+                elif self._os == "both":
+                    data = {
+                        "username": mon_name,
+                        "avatar_url": mon_img,
+                        "content": f"**{mon_name}** ({iv}%, lv{mon_level}) until **{end}** ({timeleft[0]}m {timeleft[1]}s)\n{worker} ({email})\n\n Android:",
+                        "embeds": [
+                            {
+                            "description": f"{lat},{lon}"
+                            }
+                        ]
+                    }
+                    result = requests.post(self._webhookurl, json=data)
+                    self._mad['logger'].info(result)
+        
+                    time.sleep(1)
+                    data = {
+                        "username": mon_name,
+                        "avatar_url": mon_img,
+                        "content": f"iOS: ```\n{lat},{lon}```"
                     }
                     result = requests.post(self._webhookurl, json=data)
                     self._mad['logger'].info(result)
