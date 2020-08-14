@@ -168,6 +168,8 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 email = self._workers[worker]
                 if self._mask_mail == 'yes':
                     email = self.do_mask_email(email)
+                elif self._mask_mail == 'total':
+                    email = '**@*.*'
 
                 if self._pinguser == 'yes':
                     worker = self._pluginconfig.get("pingusermapping", worker, fallback=worker)				
