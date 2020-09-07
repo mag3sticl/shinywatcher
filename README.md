@@ -11,6 +11,8 @@ Notifications will always be: `Name (IV%) until Time (time left)\nWorker name (a
 ## Notes
 - MAD and Discord only
 - only works with MAD plugin system
+- discord_webhook has to be installed in the MAD enviroment
+- You need to enable game_stats_raw at your MAD config
 - Credits to [CCEV](https://github.com/ccev/shinywatcher) who created the original version of shinywatcher
 
 ## Getting Started
