@@ -6,7 +6,8 @@ from threading import Thread
 import os
 import sys
 import time
-import datetime
+from datetime import datetime
+from dateutil import tz
 import requests
 import json
 
@@ -50,7 +51,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 self._mad['madmin'].add_plugin_hotlink(name, self._plugin.name+"."+link.replace("/", ""),
                                                        self.pluginname, self.description, self.author, self.url,
                                                        description, self.version)
-													   
+
     def perform_operation(self):
         """The actual implementation of the identity plugin is to just return the
         argument
@@ -71,10 +72,10 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._shinyhistory: list = []
         self._workers: dict = {}
 
-        self._timzone_offset = datetime.datetime.now() - datetime.datetime.utcnow()
-        self._language = self._pluginconfig.get("plugin", "language", fallback='en')        
-        self._os = self._pluginconfig.get("plugin", "OS", fallback=None)  
-        self._only_show_workers = self._pluginconfig.get("plugin", "only_show_workers", fallback=None)  
+        self._timzone_offset = datetime.now() - datetime.utcnow()
+        self._language = self._pluginconfig.get("plugin", "language", fallback='en')
+        self._os = self._pluginconfig.get("plugin", "OS", fallback=None)
+        self._only_show_workers = self._pluginconfig.get("plugin", "only_show_workers", fallback=None)
         self._exlude_mons = self._pluginconfig.get("plugin", "exlude_mons", fallback=None)
         self._webhookurl = self._pluginconfig.get("plugin", "discord_webhookurl", fallback=None)
         self._mask_mail = self._pluginconfig.get("plugin", "mask_mail", fallback='no')
@@ -91,12 +92,11 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
     def get_mon_name_plugin(self, mon_id):
         mons_file = mapadroid.utils.language.open_json_file('pokemon')
-        str_id = str(mon_id)
-        if str_id in mons_file:
+        if mon_id in mons_file:
             if self._language != "en":
-                return self.i8ln_plugin(mons_file[str_id]["name"])
+                return self.i8ln_plugin(mons_file[mon_id]["name"])
             else:
-                return mons_file[str_id]["name"]
+                return mons_file[mon_id]["name"]
         else:
             return "No-name-in-pokemon-json"
 
@@ -116,7 +116,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
             memail = email[0] + email[1] + "*****" + email[lo-2] + email[lo-1:]
         else:
             memail = email[0] + email[1] + email[2] + "*****" + email[lo-3] + email[lo-2] + email[lo-1]
-        return memail            
+        return memail
 
     def MadShinyWatcher(self):
         devicemapping = self._mad['mapping_manager'].get_all_devicemappings()
@@ -124,6 +124,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         for worker in devicemapping:
             devicesettings = devicemapping[worker]
             self._mad['logger'].debug(devicesettings)
+            pogoaccount = "" #initializing required for python3
             if devicesettings['settings'].get('logintype', '') == 'google':
                 pogoaccount = devicesettings['settings'].get("ggl_login_mail", "unknown")
             elif devicesettings['settings'].get('logintype', '') == 'ptc':
@@ -138,32 +139,74 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         while True:
 
             query = (
-                "SELECT pokemon.encounter_id, pokemon_id, disappear_time, individual_attack, individual_defense, individual_stamina, cp_multiplier, longitude, latitude, t.worker FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON pokemon.encounter_id = t.encounter_id WHERE disappear_time > utc_timestamp() AND t.is_shiny = 1 {} ORDER BY pokemon_id DESC, disappear_time DESC"
+                "SELECT pokemon.encounter_id, pokemon_id, disappear_time, individual_attack, individual_defense, individual_stamina, cp_multiplier, gender, longitude, latitude, t.worker, t.timestamp_scan FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 {} ORDER BY pokemon_id DESC, disappear_time DESC"
             ).format(worker_filter)
             self._mad['logger'].debug("MSW DB query: " + query)
             results = self._mad['db_wrapper'].autofetch_all(query)
             self._mad['logger'].debug("MSW DB result: " + str(results))
             for result in results:
-                if str(result['encounter_id']) in self._shinyhistory:
-                    continue
-                if str(result['pokemon_id']) in self._exlude_mons:
-                    continue
-                
-                mon_name = self.get_mon_name_plugin(result['pokemon_id'])
-                mon_img = f"https://raw.githubusercontent.com/Plaryu/PJSsprites/master/pokemon_icon_{str(result['pokemon_id']).zfill(3)}_00.png"
-            
-                self._mad['logger'].info(f"found shiny {mon_name}")
 
-                encid = str(result['encounter_id'])    
-                iv = int(round((((int(result['individual_attack']) + int(result['individual_defense']) + int(result['individual_stamina'])) / 45) * 100), 0))
-                etime = result['disappear_time'] + self._timzone_offset
-                end = etime.strftime("%H:%M:%S")
-                td = etime - datetime.datetime.now()
-                timeleft = divmod(td.seconds, 60)
+                encid = str(result['encounter_id'])
+                pid = str(result['pokemon_id'])
+
+                #pokemon name:
+                mon_name = self.get_mon_name_plugin(pid)
+
+                if encid in self._shinyhistory:
+                    continue
+                if pid in self._exlude_mons:
+                    self._mad['logger'].info(f"Skipping excluded shiny: {mon_name}")
+                    continue
+
+                mon_img = f"https://raw.githubusercontent.com/Plaryu/PJSsprites/master/pokemon_icon_{pid.zfill(3)}_00.png"
+
+                self._mad['logger'].info(f"Reporting shiny: {mon_name}")
+
+                #gender:
+                gendertext = '⚪' #genderless
+                gendervalue = int(result['gender'])
+                if gendervalue == 1:
+                    gendertext = '♂' #male
+                elif gendervalue == 2:
+                    gendertext = '♀' #female
+
+                #pokemon iv:
+                att = int(result['individual_attack'])
+                dfn = int(result['individual_defense'])
+                sta = int(result['individual_stamina'])
+                iv = int(round((((att + dfn + sta) / 45) * 100), 0))
+
+                #pokemon level:
+                mon_level = 0
+                cpmult = result['cp_multiplier']
+                if cpmult < 0.734:
+                    mon_level = round(58.35178527 * cpmult * cpmult - 2.838007664 * cpmult + 0.8539209906)
+                else:
+                    mon_level = round(171.0112688 * cpmult - 95.20425243)
+
+                #encounter/found time:
+                encounterdate = datetime.fromtimestamp(result['timestamp_scan'], tz.tzlocal())
+                encountertime = encounterdate.strftime("%-I:%M:%S %p")
+
+                #despawn time and remaining time:
+                despawndate = result['disappear_time']
+                despawndatelocal = despawndate + self._timzone_offset
+                despawntime = despawndatelocal.strftime("%-I:%M:%S %p")
+                if despawndate > datetime.utcnow():
+                    remainingtime = despawndate - datetime.utcnow()
+                    remainingminsec = divmod(remainingtime.seconds, 60)
+                else:
+                    remainingminsec = "??" #if there's an issue with MAD's despawn data
+
+                #coords
                 lat = result['latitude']
                 lon = result['longitude']
-                worker = result['worker']
-				
+
+                #worker
+                worker = "retired" #default in case worker was removed from the MAD db
+                if 'worker' in result:
+                    worker = result['worker']
+
                 email = ""
                 email = self._workers[worker]
                 if self._mask_mail == 'yes':
@@ -172,18 +215,14 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     email = '**@*.*'
 
                 if self._pinguser == 'yes':
-                    worker = self._pluginconfig.get("pingusermapping", worker, fallback=worker)				
-		
-                if result['cp_multiplier'] < 0.734:
-                    mon_level = round(58.35178527 * result['cp_multiplier'] * result['cp_multiplier'] - 2.838007664 * result['cp_multiplier'] + 0.8539209906)
-                else:
-                    mon_level = round(171.0112688 * result['cp_multiplier'] - 95.20425243)
-        
+                    worker = self._pluginconfig.get("pingusermapping", worker, fallback=worker)
+
+
                 if self._os == "android":
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** ({iv}%, lv{mon_level}) until **{end}** ({timeleft[0]}m {timeleft[1]}s)\n{worker} ({email})",
+                        "content": f"**{mon_name}** ({gendertext}, {iv}%, lv{mon_level}) Found: {encountertime}. Despawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left).\n{worker} ({email})",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
@@ -192,16 +231,16 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     }
                     result = requests.post(self._webhookurl, json=data)
                     self._mad['logger'].info(result)
-        
+
                 elif self._os == "ios":
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** ({iv}%, lv{mon_level}) until **{end}** ({timeleft[0]}m {timeleft[1]}s)\n{worker} ({email})"
+                        "content": f"**{mon_name}** ({gendertext}, {iv}%, lv{mon_level}) Found: {encountertime}. Despawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left).\n{worker} ({email})"
                     }
                     result = requests.post(self._webhookurl, json=data)
                     self._mad['logger'].info(result)
-        
+
                     time.sleep(1)
                     data = {
                         "username": mon_name,
@@ -210,12 +249,12 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     }
                     result = requests.post(self._webhookurl, json=data)
                     self._mad['logger'].info(result)
-        
+
                 elif self._os == "both":
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** ({iv}%, lv{mon_level}) until **{end}** ({timeleft[0]}m {timeleft[1]}s)\n{worker} ({email})\n\n Android:",
+                        "content": f"**{mon_name}** ({gendertext}, {iv}%, lv{mon_level}) Found: {encountertime}. Despawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left).\n{worker} ({email})\n\n Android:",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
@@ -224,7 +263,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     }
                     result = requests.post(self._webhookurl, json=data)
                     self._mad['logger'].info(result)
-        
+
                     time.sleep(1)
                     data = {
                         "username": mon_name,
@@ -238,9 +277,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
                 time.sleep(2)
 
-            if datetime.datetime.now().hour == 3 and datetime.datetime.now().minute < 10:
+            if datetime.now().hour == 3 and datetime.now().minute < 10:
                 self._shinyhistory.clear()
-            time.sleep(60)
+            time.sleep(30)
 
 
     @auth_required
@@ -248,5 +287,4 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         return render_template("mswreadme.html",
                                header="ShinyWatcher Readme", title="ShinyWatcher Readme"
                                )
-							   
 
