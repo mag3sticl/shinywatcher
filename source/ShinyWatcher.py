@@ -68,8 +68,27 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
             self._mad['logger'].info("Plugin - ShinyWatcher is not aktive while configmode")
             return False
 
+        # create shiny_history table in db, if it doesn't already exist
+        try:
+            dbstatement = "CREATE TABLE IF NOT EXISTS shiny_history(encounter_id BIGINT UNSIGNED NOT NULL)"
+            self._mad['logger'].debug("DB call: " + dbstatement)
+            results = self._mad['db_wrapper'].execute(dbstatement, commit=True)
+            self._mad['logger'].debug("DB results: " + str(results))
+        except:
+            #current error includes: Failed executing query:... error: No result set to fetch from. ###FIXED with commit=True
+            self._mad['logger'].info("Plugin - ShinyWatcher had 'no result set to fetch from' exception")
+
+        # populate shiny_history table with existing shiny encounters, if they don't exist in the table
+        try:
+            dbstatement = "INSERT INTO shiny_history (encounter_id) SELECT pokemon.encounter_id FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 and pokemon.encounter_id NOT IN (SELECT encounter_id FROM shiny_history)"
+            self._mad['logger'].debug("DB call: " + dbstatement)
+            results = self._mad['db_wrapper'].execute(dbstatement, commit=True)
+            self._mad['logger'].debug("DB results: " + str(results))
+        except:
+            self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to populate shiny_history with existing pokmeon")
+
         # read config parameter
-        self._shinyhistory: list = []
+        ###self._shinyhistory: list = []
         self._workers: dict = {}
 
         self._timzone_offset = datetime.now() - datetime.utcnow()
@@ -139,21 +158,22 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         while True:
 
             query = (
-                "SELECT pokemon.encounter_id, pokemon_id, disappear_time, individual_attack, individual_defense, individual_stamina, cp_multiplier, gender, longitude, latitude, t.worker, t.timestamp_scan FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 {} ORDER BY pokemon_id DESC, disappear_time DESC"
+                "SELECT pokemon.encounter_id, pokemon_id, disappear_time, individual_attack, individual_defense, individual_stamina, cp_multiplier, gender, longitude, latitude, t.worker, t.timestamp_scan FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 AND pokemon.encounter_id NOT IN (SELECT encounter_id FROM shiny_history) {} ORDER BY pokemon_id DESC, disappear_time DESC"
             ).format(worker_filter)
             self._mad['logger'].debug("MSW DB query: " + query)
             results = self._mad['db_wrapper'].autofetch_all(query)
             self._mad['logger'].debug("MSW DB result: " + str(results))
             for result in results:
 
-                encid = str(result['encounter_id'])
+                encounterid = result['encounter_id']
+                encid = str(encounterid)
                 pid = str(result['pokemon_id'])
 
                 #pokemon name:
                 mon_name = self.get_mon_name_plugin(pid)
 
-                if encid in self._shinyhistory:
-                    continue
+                ###if encid in self._shinyhistory:
+                ###    continue
                 if pid in self._exlude_mons:
                     self._mad['logger'].info(f"Skipping excluded shiny: {mon_name}")
                     continue
@@ -273,12 +293,16 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     result = requests.post(self._webhookurl, json=data)
                     self._mad['logger'].info(result)
 
-                self._shinyhistory.append(encid)
+                ###self._shinyhistory.append(encid)
+
+                #update shiny_history in db table to include encounter
+                reported_data = dict([('encounter_id', encounterid)])
+                self._mad['db_wrapper'].autoexec_insert('shiny_history', reported_data)
 
                 time.sleep(2)
 
-            if datetime.now().hour == 3 and datetime.now().minute < 10:
-                self._shinyhistory.clear()
+            ###if datetime.now().hour == 3 and datetime.now().minute < 10:
+            ###    self._shinyhistory.clear()
             time.sleep(30)
 
 
