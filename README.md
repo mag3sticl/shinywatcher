@@ -27,8 +27,13 @@ copy plugin.ini.example to plugin.ini and adjust it with your data
 - `ONLY_SHOW_WORKERS` Leave blank if you want notifications from all workers. If you only want them from certain Accounts, follow the format in the example
 - `EXCLUDE_MONS` Filter out Mons you already have enough Shinies of. Follow the example format!
 - `OS` Set your notifications to `android` or `ios` mode. On Android, messages have an embed contaning the coords. For iOS an extra message containing coords will be sent
-###  plugin.ini
 
+### Pingusermapping
+Ping one or more users in Discord when the mapped Scanner encounters a shiny.
+To get your User ID or anyone else’s User ID right click on their name and click “Copy ID”
+Alternative type there name as a mention and place a backslash \ in front of the mention.
+
+### plugin.ini
 ```
 [plugin]
 active = true
