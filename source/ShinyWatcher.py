@@ -7,7 +7,7 @@ import os
 import sys
 import time
 from datetime import datetime
-from dateutil import tz
+# from dateutil import tz
 import requests
 import json
 
@@ -165,14 +165,13 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
             self._mad['logger'].debug("MSW DB result: " + str(results))
             loginaccount = results[0]['username'] # only one active account [0]
             self._workers[worker] = loginaccount
-            #self._mad['logger'].info(f"PoGo Login captured: {worker}:{loginaccount}")
 
         while True:
 
             query = (
                 "SELECT pokemon.encounter_id, pokemon_id, disappear_time, individual_attack,"
-                " individual_defense, individual_stamina, cp_multiplier, gender, longitude,"
-                " latitude, t.worker, t.timestamp_scan FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON"
+                " individual_defense, individual_stamina, cp, cp_multiplier, gender, longitude, latitude, t.worker" # , t.timestamp_scan
+                " FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON"
                 " pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 AND pokemon.encounter_id"
                 " NOT IN (SELECT encounter_id FROM shiny_history) {} ORDER BY pokemon_id DESC, disappear_time DESC"
             ).format(worker_filter)
@@ -185,6 +184,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 encid = str(encounterid)
                 pid = str(result['pokemon_id'])
 
+                # pokemon CP
+                cpval = str(result['cp'])
+
                 # pokemon name
                 mon_name = self.get_mon_name_plugin(pid)
 
@@ -196,7 +198,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
                 self._mad['logger'].info(f"Reporting shiny: {mon_name}")
 
-                # gender
+                # Pokemon gender
                 gendericon = '⚪' #genderless
                 gendervalue = int(result['gender'])
                 if gendervalue == 1:
@@ -204,13 +206,13 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 elif gendervalue == 2:
                     gendericon = '♀' #female
 
-                # pokemon iv
+                # Pokemon IV
                 att = int(result['individual_attack'])
                 dfn = int(result['individual_defense'])
                 sta = int(result['individual_stamina'])
                 iv = int(round((((att + dfn + sta) / 45) * 100), 0))
 
-                # pokemon level
+                # Pokemon level
                 mon_level = 0
                 cpmult = result['cp_multiplier']
                 if cpmult < 0.734:
@@ -218,11 +220,11 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 else:
                     mon_level = round(171.0112688 * cpmult - 95.20425243)
 
-                # encounter/found time
-                encounterdate = datetime.fromtimestamp(result['timestamp_scan'], tz.tzlocal())
-                encountertime = encounterdate.strftime("%-I:%M:%S %p")
+                #### REMOVED (NOT IMPORTANT/USEFUL) # encounter/found time
+                #encounterdate = datetime.fromtimestamp(result['timestamp_scan'], tz.tzlocal())
+                #encountertime = encounterdate.strftime("%-I:%M:%S %p")
 
-                # despawn time and remaining time
+                # Despawn time and remaining min/sec
                 despawndate = result['disappear_time']
                 despawndatelocal = despawndate + self._timzone_offset
                 despawntime = despawndatelocal.strftime("%-I:%M:%S %p")
@@ -230,13 +232,13 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     remainingtime = despawndate - datetime.utcnow()
                     remainingminsec = divmod(remainingtime.seconds, 60)
                 else:
-                    remainingminsec = "??" # if the actual despawn time is unknown or happened before this report has been processed
+                    remainingminsec = "??" # the actual despawn time is unknown or occurred before this report has been processed
 
-                # coords
+                # Location coords
                 lat = result['latitude']
                 lon = result['longitude']
 
-                # worker
+                # Worker
                 worker = "Unknown" # default in case worker was removed from the MAD db
                 if 'worker' in result:
                     worker = result['worker']
@@ -261,7 +263,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** ({gendericon}, {iv}%, lv{mon_level}; {remainingminsec[0]}m {remainingminsec[1]}s left)\nFound: {encountertime}\nDespawns: **{despawntime}**\n{worker}/{pogologin}",
+                        "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
@@ -275,7 +277,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** ({gendericon}, {iv}%, lv{mon_level}; {remainingminsec[0]}m {remainingminsec[1]}s left)\nFound: {encountertime}\nDespawns: **{despawntime}**\n{worker}/{pogologin}"
+                        "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}"
                     }
                     result = requests.post(self._webhookurl, json=data)
                     self._mad['logger'].info(result)
@@ -293,7 +295,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** ({gendericon}, {iv}%, lv{mon_level}; {remainingminsec[0]}m {remainingminsec[1]}s left)\nFound: {encountertime}\nDespawns: **{despawntime}**\n{worker}/{pogologin}\n\n Android:",
+                        "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}\n\n Android:",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
