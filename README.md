@@ -4,8 +4,6 @@ Get support on this [Discord Server](https://discord.gg/cMZs5tk)
 
 Shiny Watcher checks your DB for shiny encounters and then sends a notification to Discord if it finds any. It allows to filter out Pokemon and Workers as well as report the login account used by the worker.
 
-Notifications appear as: `PokemonName IV% L# CP# Gender:icon\nDespawns: Time (remaining min/sec left)\nWorker device/account` (the screenshot below is somewhat outdated, but is accurate enough). For Android devices, the coordinates are embeded so you can copy them by pressing for ~2 seconds. Fast and easy. There's also an option to optimize notifications for iOS devices.
-
 ![Screenshot](https://i.imgur.com/kvUSoI4.png)
 
 ## Notes
@@ -27,8 +25,13 @@ copy plugin.ini.example to plugin.ini and adjust it with your data
 - `ONLY_SHOW_WORKERS` Leave blank if you want notifications from all workers. If you only want them from certain Accounts, follow the format in the example
 - `EXCLUDE_MONS` Filter out Mons you already have enough Shinies of. Follow the example format!
 - `OS` Set your notifications to `android` or `ios` mode. On Android, messages have an embed contaning the coords. For iOS an extra message containing coords will be sent
-###  plugin.ini
 
+### Pingusermapping
+Ping one or more users in Discord when the mapped Scanner encounters a shiny.
+To get your User ID or anyone else’s User ID right click on their name and click “Copy ID”
+Alternative type there name as a mention and place a backslash \ in front of the mention.
+
+### plugin.ini
 ```
 [plugin]
 active = true

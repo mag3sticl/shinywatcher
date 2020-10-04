@@ -146,6 +146,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         devicemapping = self._mad['mapping_manager'].get_all_devicemappings()
         self._mad['logger'].debug(devicemapping)
 
+
         worker_filter = ""
         if not self._only_show_workers == "":
             self._only_show_workers = "'" + (self._only_show_workers).replace(",","','") + "'"
@@ -263,7 +264,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}",
+
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
