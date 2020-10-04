@@ -4,7 +4,7 @@ Get support on this [Discord Server](https://discord.gg/cMZs5tk)
 
 Shiny Watcher checks your DB for shiny encounters and then sends a notification to Discord if it finds any. It allows to filter out Pokemon and Workers as well as report the login account used by the worker.
 
-Notifications appear as: `Name (Gender icon, IV%, lv#; remaining min/sec left)\nFound: Time\nDespawns: Time\nWorker device/account` (the screenshot below is somewhat outdated, but is accurate enough). For Android devices, the coordinates are embeded so you can copy them by pressing for ~2 seconds. Fast and easy. There's also an option to optimize notifications for iOS devices.
+Notifications appear as: `Name (Gender icon, IV%, lv#)\nDespawns: Time (remaining min/sec left)\nWorker device/account` (the screenshot below is somewhat outdated, but is accurate enough). For Android devices, the coordinates are embeded so you can copy them by pressing for ~2 seconds. Fast and easy. There's also an option to optimize notifications for iOS devices.
 
 ![Screenshot](https://i.imgur.com/kvUSoI4.png)
 
