@@ -146,8 +146,12 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
             pogoaccount = "" #initializing required for python3
             if devicesettings['settings'].get('logintype', '') == 'google':
                 pogoaccount = devicesettings['settings'].get("ggl_login_mail", "unknown")
+                self._mad['logger'].debug(pogoaccount)
             elif devicesettings['settings'].get('logintype', '') == 'ptc':
-                pogoaccount = ((devicesettings['settings'].get("ptc_login", "unknown")).split(','))[0]
+                pogoaccount = str(devicesettings.get("ptc_login", "unknown"))
+                if pogoaccount != "unknown":
+                    pogoaccount = pogoaccount.split(',')[0].replace("[",'').replace("(",'').replace("'",'')
+                self._mad['logger'].debug(pogoaccount)
             self._workers[worker] = pogoaccount
 
         worker_filter = ""
@@ -242,7 +246,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** ({gendertext}, {iv}%, lv{mon_level}) Found: {encountertime}. Despawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left).\n{worker} ({email})",
+                        "content": f"**{mon_name}** ({gendertext}, {iv}%, lv{mon_level}) ({remainingminsec[0]}m {remainingminsec[1]}s left)  \nFound: {encountertime} \nDespawns: **{despawntime}** \n{worker} ({email})",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
