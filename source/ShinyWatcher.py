@@ -7,7 +7,7 @@ import os
 import sys
 import time
 from datetime import datetime
-from dateutil import tz
+# from dateutil import tz
 import requests
 import json
 
@@ -63,22 +63,21 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._mad['madmin'].register_plugin(self._plugin)
         # do not change this part △△△△△△△△△△△△△△△
 
-        # dont start plugin in config mode
+        # do not start plugin when in config mode
         if self._mad['args'].config_mode == True:
             self._mad['logger'].info("Plugin - ShinyWatcher is not aktive while configmode")
             return False
 
-        # create shiny_history table in db, if it doesn't already exist
+        # create shiny_history table in db, if it does not already exist
         try:
             dbstatement = "CREATE TABLE IF NOT EXISTS shiny_history(encounter_id BIGINT UNSIGNED NOT NULL)"
             self._mad['logger'].debug("DB call: " + dbstatement)
             results = self._mad['db_wrapper'].execute(dbstatement, commit=True)
             self._mad['logger'].debug("DB results: " + str(results))
         except:
-            #current error includes: Failed executing query:... error: No result set to fetch from. ###FIXED with commit=True
             self._mad['logger'].info("Plugin - ShinyWatcher had 'no result set to fetch from' exception")
 
-        # populate shiny_history table with existing shiny encounters, if they don't exist in the table
+        # populate shiny_history table with existing shiny encounters, if they do not yet exist in the history table
         try:
             dbstatement = "INSERT INTO shiny_history (encounter_id) SELECT pokemon.encounter_id FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 and pokemon.encounter_id NOT IN (SELECT encounter_id FROM shiny_history)"
             self._mad['logger'].debug("DB call: " + dbstatement)
@@ -88,7 +87,6 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
             self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to populate shiny_history with existing pokmeon")
 
         # read config parameter
-        ###self._shinyhistory: list = []
         self._workers: dict = {}
 
         self._timzone_offset = datetime.now() - datetime.utcnow()
@@ -137,32 +135,51 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
             memail = email[0] + email[1] + email[2] + "*****" + email[lo-3] + email[lo-2] + email[lo-1]
         return memail
 
+    def strip_end_email(self, pogologin):
+        pos = pogologin.rfind('.')
+        stripped = pogologin
+        if pos >= 0:
+            stripped = pogologin[:pos]
+        return stripped
+
     def MadShinyWatcher(self):
         devicemapping = self._mad['mapping_manager'].get_all_devicemappings()
         self._mad['logger'].debug(devicemapping)
-        for worker in devicemapping:
-            devicesettings = devicemapping[worker]
-            self._mad['logger'].debug(devicesettings)
-            pogoaccount = "" #initializing required for python3
-            if devicesettings['settings'].get('logintype', '') == 'google':
-                pogoaccount = devicesettings['settings'].get("ggl_login_mail", "unknown")
-                self._mad['logger'].debug(pogoaccount)
-            elif devicesettings['settings'].get('logintype', '') == 'ptc':
-                pogoaccount = str(devicesettings.get("ptc_login", "unknown"))
-                if pogoaccount != "unknown":
-                    pogoaccount = pogoaccount.split(',')[0].replace("[",'').replace("(",'').replace("'",'')
-                self._mad['logger'].debug(pogoaccount)
-            self._workers[worker] = pogoaccount
+
 
         worker_filter = ""
         if not self._only_show_workers == "":
             self._only_show_workers = "'" + (self._only_show_workers).replace(",","','") + "'"
             worker_filter = f"AND t.worker in ({self._only_show_workers})"
 
+        for worker in devicemapping:
+            devicesettings = devicemapping[worker]
+            self._mad['logger'].debug(devicesettings)
+            query = (
+                "SELECT name, settings_pogoauth.device_id, logintype, username FROM settings_pogoauth,"
+                " settings_device WHERE settings_pogoauth.device_id = settings_device.device_id AND"
+                " logintype = login_type AND name = '%s'" %
+                (str(worker))
+            ).format(worker_filter)
+            self._mad['logger'].debug("MSW DB query: " + query)
+            results = self._mad['db_wrapper'].autofetch_all(query)
+            self._mad['logger'].debug("MSW DB result: " + str(results))
+
+            loginaccount = "unknown"
+            if len(results) > 0:
+                loginaccount = results[0]['username'] # only one active account [0]
+            else:
+                self._mad['logger'].info(f"Could not find PoGo Account for device: {worker}")
+            self._workers[worker] = loginaccount
+
         while True:
 
             query = (
-                "SELECT pokemon.encounter_id, pokemon_id, disappear_time, individual_attack, individual_defense, individual_stamina, cp_multiplier, gender, longitude, latitude, t.worker, t.timestamp_scan FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 AND pokemon.encounter_id NOT IN (SELECT encounter_id FROM shiny_history) {} ORDER BY pokemon_id DESC, disappear_time DESC"
+                "SELECT pokemon.encounter_id, pokemon_id, disappear_time, individual_attack,"
+                " individual_defense, individual_stamina, cp, cp_multiplier, gender, longitude, latitude, t.worker" # , t.timestamp_scan
+                " FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON"
+                " pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 AND pokemon.encounter_id"
+                " NOT IN (SELECT encounter_id FROM shiny_history) {} ORDER BY pokemon_id DESC, disappear_time DESC"
             ).format(worker_filter)
             self._mad['logger'].debug("MSW DB query: " + query)
             results = self._mad['db_wrapper'].autofetch_all(query)
@@ -173,11 +190,12 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 encid = str(encounterid)
                 pid = str(result['pokemon_id'])
 
-                #pokemon name:
+                # pokemon CP
+                cpval = str(result['cp'])
+
+                # pokemon name
                 mon_name = self.get_mon_name_plugin(pid)
 
-                ###if encid in self._shinyhistory:
-                ###    continue
                 if pid in self._exlude_mons:
                     self._mad['logger'].info(f"Skipping excluded shiny: {mon_name}")
                     continue
@@ -186,21 +204,21 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
                 self._mad['logger'].info(f"Reporting shiny: {mon_name}")
 
-                #gender:
-                gendertext = '⚪' #genderless
+                # Pokemon gender
+                gendericon = '⚪' #genderless
                 gendervalue = int(result['gender'])
                 if gendervalue == 1:
-                    gendertext = '♂' #male
+                    gendericon = '♂' #male
                 elif gendervalue == 2:
-                    gendertext = '♀' #female
+                    gendericon = '♀' #female
 
-                #pokemon iv:
+                # Pokemon IV
                 att = int(result['individual_attack'])
                 dfn = int(result['individual_defense'])
                 sta = int(result['individual_stamina'])
                 iv = int(round((((att + dfn + sta) / 45) * 100), 0))
 
-                #pokemon level:
+                # Pokemon level
                 mon_level = 0
                 cpmult = result['cp_multiplier']
                 if cpmult < 0.734:
@@ -208,11 +226,11 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 else:
                     mon_level = round(171.0112688 * cpmult - 95.20425243)
 
-                #encounter/found time:
-                encounterdate = datetime.fromtimestamp(result['timestamp_scan'], tz.tzlocal())
-                encountertime = encounterdate.strftime("%-I:%M:%S %p")
+                #### REMOVED (NOT IMPORTANT/USEFUL) # encounter/found time
+                #encounterdate = datetime.fromtimestamp(result['timestamp_scan'], tz.tzlocal())
+                #encountertime = encounterdate.strftime("%-I:%M:%S %p")
 
-                #despawn time and remaining time:
+                # Despawn time and remaining min/sec
                 despawndate = result['disappear_time']
                 despawndatelocal = despawndate + self._timzone_offset
                 despawntime = despawndatelocal.strftime("%-I:%M:%S %p")
@@ -220,33 +238,38 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     remainingtime = despawndate - datetime.utcnow()
                     remainingminsec = divmod(remainingtime.seconds, 60)
                 else:
-                    remainingminsec = "??" #if there's an issue with MAD's despawn data
+                    remainingminsec = "??" # the actual despawn time is unknown or occurred before this report has been processed
 
-                #coords
+                # Location coords
                 lat = result['latitude']
                 lon = result['longitude']
 
-                #worker
-                worker = "retired" #default in case worker was removed from the MAD db
+                # Worker
+                worker = "Unknown" # default in case worker was removed from the MAD db
                 if 'worker' in result:
                     worker = result['worker']
 
-                email = ""
-                email = self._workers[worker]
+                # PoGo user login
+                pogologin = ""
+                if worker in self._workers:
+                    pogologin = self._workers[worker]
                 if self._mask_mail == 'yes':
-                    email = self.do_mask_email(email)
+                    pogologin = self.do_mask_email(pogologin)
                 elif self._mask_mail == 'total':
-                    email = '**@*.*'
+                    pogologin = '**@*.*'
+                else:
+                    pogologin = self.strip_end_email(pogologin)
+                self._mad['logger'].info(f"Pogo Login set for {worker}:{pogologin}")
 
                 if self._pinguser == 'yes':
                     worker = self._pluginconfig.get("pingusermapping", worker, fallback=worker)
 
-
+                # Report shiny encounter
                 if self._os == "android":
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** ({gendertext}, {iv}%, lv{mon_level}) ({remainingminsec[0]}m {remainingminsec[1]}s left)  \nFound: {encountertime} \nDespawns: **{despawntime}** \n{worker} ({email})",
+
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
@@ -260,7 +283,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** ({gendertext}, {iv}%, lv{mon_level}) Found: {encountertime}. Despawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left).\n{worker} ({email})"
+                        "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}"
                     }
                     result = requests.post(self._webhookurl, json=data)
                     self._mad['logger'].info(result)
@@ -278,7 +301,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** ({gendertext}, {iv}%, lv{mon_level}) Found: {encountertime}. Despawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left).\n{worker} ({email})\n\n Android:",
+                        "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}\n\n Android:",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
@@ -297,16 +320,12 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     result = requests.post(self._webhookurl, json=data)
                     self._mad['logger'].info(result)
 
-                ###self._shinyhistory.append(encid)
-
-                #update shiny_history in db table to include encounter
+                #update shiny_history in db table to include reported encounter
                 reported_data = dict([('encounter_id', encounterid)])
                 self._mad['db_wrapper'].autoexec_insert('shiny_history', reported_data)
 
                 time.sleep(2)
 
-            ###if datetime.now().hour == 3 and datetime.now().minute < 10:
-            ###    self._shinyhistory.clear()
             time.sleep(30)
 
 
@@ -315,4 +334,3 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         return render_template("mswreadme.html",
                                header="ShinyWatcher Readme", title="ShinyWatcher Readme"
                                )
-

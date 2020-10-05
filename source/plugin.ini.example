@@ -3,8 +3,8 @@ active = true
 discord_webhookurl = 
 language = de/en
 os = android/ios/both
-only_show_workers = 
-exlude_mons = 
+only_show_workers = ATV01,ATV19,ATV34
+exlude_mons = 1,4,7
 mask_mail = <yes or no>
 pinguser = <yes or no>
 
