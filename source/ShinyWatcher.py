@@ -163,7 +163,12 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
             self._mad['logger'].debug("MSW DB query: " + query)
             results = self._mad['db_wrapper'].autofetch_all(query)
             self._mad['logger'].debug("MSW DB result: " + str(results))
-            loginaccount = results[0]['username'] # only one active account [0]
+
+            loginaccount = "unknown"
+            if len(results) > 0:
+                loginaccount = results[0]['username'] # only one active account [0]
+            else:
+                self._mad['logger'].info(f"Could not find PoGo Account for device: {worker}")
             self._workers[worker] = loginaccount
 
         while True:
