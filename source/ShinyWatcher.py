@@ -269,7 +269,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": mon_name,
                         "avatar_url": mon_img,
-
+                        "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
