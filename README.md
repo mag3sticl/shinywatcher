@@ -4,7 +4,7 @@ Get support on this [Discord Server](https://discord.gg/cMZs5tk)
 
 Shiny Watcher checks your DB for active Shinies and then sends a notification to Discord if it finds any. It allows to filter out Pokemon and Workers as well as connect a Login E-Mail to every worker.
 
-Notifications will always be: `Name (Gender-symbol, IV%, lv#) Found: Time. Despawns: Time (time left).\nWorker name (account/email)`. The coordinates are in an embed so you can copy them by long-pressing (for ~2 seconds) on an Android device. Fast and easy. There's also an option to optimize notifications for iOS.
+Notifications will always be: `Pokemon-name IV% L# CP# Gender:symbol \n Despawns: Time (time left) \n Worker name (account/email/)`. On Android devices, the coordinates are embeded so you can copy them by long-pressing (for ~2 seconds). Fast and easy. There's also an option to optimize what is displayed for iOS.
 
 ![Screenshot](https://i.imgur.com/kvUSoI4.png)
 
@@ -28,7 +28,7 @@ copy plugin.ini.example to plugin.ini and adjust it with your data
 - `EXCLUDE_MONS` Filter out Mons you already have enough Shinies of. Follow the example format!
 - `OS` Set your notifications to `android` or `ios` mode. On Android, messages have an embed contaning the coords. For iOS an extra message containing coords will be sent
 
-###Pingusermapping
+### Pingusermapping
 Ping one or more users in Discord when the mapped Scanner encounters a shiny. To get your User ID or anyone else’s User ID right click on their name and click “Copy ID” Alternative type there name as a mention and place a backslash \ in front of the mention.
 
 ###  plugin.ini
@@ -40,10 +40,13 @@ discord_webhookurl: https://discord.com/api/webhooks/xxxxxxxx/xxxxxxxxxxxxxxxxxx
 language = en
 os = android
 only_show_workers = ATV01,ATV19,ATV34
-exlude_mons = 1,4,7
+exlude_mons = Bulbasaur,Pikachu,Gible
 mask_mail = no
-pinguser = yes
+pinguser = no
+timezone_offset = 0
+accounts_usernames = privatePTC1,privateGmail1@gmail.com
+accounts_display_custom = Instead_of_privatePTC1,Instead_of_privateGmail1@gmail.com
 
 [pingusermapping]
-device_origin = <@xxxxxxxxxxxxxxxxxxxxxxxx>
+device_origin = @xxxxxxxxxxxxxxxxxxxxxxxx
 ```
