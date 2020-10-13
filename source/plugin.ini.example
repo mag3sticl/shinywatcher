@@ -1,13 +1,15 @@
 [plugin]
 active = true
-discord_webhookurl = 
-language = de/en
-os = android/ios/both
-only_show_workers = ATV01,ATV19,ATV34
-exlude_mons = 1,4,7
-mask_mail = <yes or no>
-pinguser = <yes or no>
+discord_webhookurl = https://required
+language = en,de,... choose one; if empty, defaults to en
+os = android,ios,both... choose one; if empty, defaults to both
+only_show_workers = atv01,atv55,atv3... if empty, defaults to show ALL workers
+exclude_mons = Pikachu,Gible... if empty, defaults to report ALL shinies encountered
+mask_mail = no,yes,total... choose one; if empty, defaults to no
+pinguser = no,yes... if empty, defaults to no
+timezone_offset = 0... minutes. if empty, defaults to 0
+accounts_usernames = ptc1,gmail1@gmail.com,ptc55... if empty, no custom usernames displayed
+accounts_display_custom = custom_displays_instead_of_ptc1,custom_gmail1@gmail.com,custom_ptc55
 
 [pingusermapping]
-device_origin = <@discord_id>
-device_origin = <@discord_id1>, <@discord_id2>
+device_origin = @discord_id... this_is_optional

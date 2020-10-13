@@ -87,15 +87,15 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         except:
             self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to populate shiny_history with existing pokmeon")
 
-        # create accounts_display_text table in db, if it does not already exit
+        # create accounts_custom_display table in db, if it does not already exit
         try:
-            dbstatement = ("CREATE TABLE IF NOT EXISTS accounts_display_text(username varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,"
+            dbstatement = ("CREATE TABLE IF NOT EXISTS accounts_custom_display(username varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,"
                 " display_text VARCHAR(128), PRIMARY KEY (username))")
             self._mad['logger'].debug("DB call: " + dbstatement)
             results = self._mad['db_wrapper'].execute(dbstatement, commit=True)
             self._mad['logger'].debug("DB results: " + str(results))
         except:
-            self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to create table accounts_display_text")
+            self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to create table accounts_custom_display")
 
         # read config parameter
         self._workers: dict = {}
@@ -103,12 +103,29 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._language = self._pluginconfig.get("plugin", "language", fallback='en')
         self._os = self._pluginconfig.get("plugin", "os", fallback='both')
         self._only_show_workers = self._pluginconfig.get("plugin", "only_show_workers", fallback=None)
-        self._exlude_mons = self._pluginconfig.get("plugin", "exlude_mons", fallback=None)
+        self._exclude_mons = self._pluginconfig.get("plugin", "exclude_mons", fallback=None)
         self._webhookurl = self._pluginconfig.get("plugin", "discord_webhookurl", fallback=None)
         self._mask_mail = self._pluginconfig.get("plugin", "mask_mail", fallback='no')
         self._pinguser = self._pluginconfig.get("plugin", "pinguser", fallback='no')
 
-        #timezone offset
+        # populate accounts_custom_display with custom pogo account usernames to display
+        _accounts_usernames = self._pluginconfig.get("plugin", "accounts_usernames", fallback=None)
+        _accounts_display_custom = self._pluginconfig.get("plugin", "accounts_display_custom", fallback=None)
+        if _accounts_usernames != "" and _accounts_display_custom != "":
+            _accounts_usernames_list = _accounts_usernames.split(",")
+            _accounts_display_custom_list = _accounts_display_custom.split(",")
+            if len(_accounts_usernames_list) == len(_accounts_display_custom_list):
+                for _acc_usr,_acc_cstm in zip(_accounts_usernames_list,_accounts_display_custom_list):
+                    try:
+                        dbstatement = 'REPLACE INTO accounts_custom_display VALUES ("%s", "%s")' #(_acc_usr, _acc_cstm)
+                        self._mad['logger'].debug("DB call: " + dbstatement)
+                        results = self._mad['db_wrapper'].execute(dbstatement % (_acc_usr, _acc_cstm), commit=True)
+                        #results = self._mad['db_wrapper'].execute(dbstatement, (_acc_usr, _acc_cstm), commit=True)
+                        self._mad['logger'].debug("DB results: " + str(results))
+                    except:
+                        self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to populate accounts_custom_display")
+
+        # timezone offset
         self._timezone_offset = 0
         self._user_supplied_offset = self._pluginconfig.getint("plugin", "timezone_offset", fallback=0)
         if self._user_supplied_offset == 0:
@@ -176,7 +193,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 " (SELECT t_pogoauth.device_id, t_pogoauth.login_type, t_pogoauth.username,"
                 " IF(t_display.username IS NULL, t_pogoauth.username, t_display.display_text)"
                 " AS text_to_display FROM settings_pogoauth t_pogoauth LEFT JOIN"
-                " accounts_display_text t_display ON t_display.username = t_pogoauth.username)"
+                " accounts_custom_display t_display ON t_display.username = t_pogoauth.username)"
                 " t_auth JOIN settings_device WHERE t_auth.device_id = settings_device.device_id"
                 " AND logintype = t_auth.login_type AND name = '%s'" %
                 (str(worker))
@@ -216,7 +233,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 # pokemon name
                 mon_name = self.get_mon_name_plugin(pid)
 
-                if pid in self._exlude_mons:
+                if pid in self._exclude_mons:
                     self._mad['logger'].info(f"Skipping excluded shiny: {mon_name}")
                     continue
 
