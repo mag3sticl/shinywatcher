@@ -6,7 +6,7 @@ from threading import Thread
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import json
 
@@ -100,14 +100,21 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         # read config parameter
         self._workers: dict = {}
 
-        self._timzone_offset = datetime.now() - datetime.utcnow()
         self._language = self._pluginconfig.get("plugin", "language", fallback='en')
-        self._os = self._pluginconfig.get("plugin", "OS", fallback=None)
+        self._os = self._pluginconfig.get("plugin", "os", fallback='both')
         self._only_show_workers = self._pluginconfig.get("plugin", "only_show_workers", fallback=None)
         self._exlude_mons = self._pluginconfig.get("plugin", "exlude_mons", fallback=None)
         self._webhookurl = self._pluginconfig.get("plugin", "discord_webhookurl", fallback=None)
         self._mask_mail = self._pluginconfig.get("plugin", "mask_mail", fallback='no')
         self._pinguser = self._pluginconfig.get("plugin", "pinguser", fallback='no')
+
+        #timezone offset
+        self._timezone_offset = 0
+        self._user_supplied_offset = self._pluginconfig.getint("plugin", "timezone_offset", fallback=0)
+        if self._user_supplied_offset == 0:
+             self._timezone_offset = datetime.now() - datetime.utcnow()
+        else:
+             self._timezone_offset = timedelta(minutes=self._user_supplied_offset)
 
         self.mswThread()
 
@@ -245,15 +252,16 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
                 # Despawn time and remaining min/sec
                 despawndate = result['disappear_time']
-                despawndatelocal = despawndate + self._timzone_offset
+                despawndatelocal = despawndate + self._timezone_offset
                 despawntime = despawndatelocal.strftime("%-I:%M:%S %p")
-                if despawndate > datetime.utcnow():
-                    remainingtime = despawndate - datetime.utcnow()
-                    remainingminsec = divmod(remainingtime.seconds, 60)
+                remainingminsec = "??" # if the actual despawn time is unknown or occurred before this report has been processed
+                if self._user_supplied_offset == 0:
+                    if despawndate > datetime.utcnow():
+                        remainingtime = despawndate - datetime.utcnow()
+                        remainingminsec = divmod(remainingtime.seconds, 60)
                 else:
-                    # the actual despawn time is unknown or occurred before this report has been processed
-                    remainingminsec = "??"
-
+                    remainingtime = despawndatelocal - datetime.now()
+                    remainingminsec = divmod(remainingtime.seconds, 60)
                 # Location coords
                 lat = result['latitude']
                 lon = result['longitude']
