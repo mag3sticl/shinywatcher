@@ -28,7 +28,7 @@ copy plugin.ini.example to plugin.ini and adjust it with your data
 - `EXCLUDE_MONS` Filter out Mons you already have enough Shinies of. Follow the example format!
 - `OS` Set your notifications to `android` or `ios` mode. On Android, messages have an embed contaning the coords. For iOS an extra message containing coords will be sent
 
-###Pingusermapping
+### CPingusermapping
 Ping one or more users in Discord when the mapped Scanner encounters a shiny. To get your User ID or anyone else’s User ID right click on their name and click “Copy ID” Alternative type there name as a mention and place a backslash \ in front of the mention.
 
 ###  plugin.ini
