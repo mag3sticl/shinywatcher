@@ -40,7 +40,7 @@ discord_webhookurl: https://discord.com/api/webhooks/xxxxxxxx/xxxxxxxxxxxxxxxxxx
 language = en
 os = android
 only_show_workers = ATV01,ATV19,ATV34
-exlude_mons = Bulbasaur,Pikachu,Gible
+exlude_mons = 1,7,36
 mask_mail = no
 pinguser = no
 timezone_offset = 0
