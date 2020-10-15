@@ -9,7 +9,9 @@ import time
 from datetime import datetime, timedelta
 import requests
 import json
-
+import discord
+import asyncio
+import re
 
 class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
     """This plugin is just the identity function: it returns the argument
@@ -107,6 +109,8 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._webhookurl = self._pluginconfig.get("plugin", "discord_webhookurl", fallback=None)
         self._mask_mail = self._pluginconfig.get("plugin", "mask_mail", fallback='no')
         self._pinguser = self._pluginconfig.get("plugin", "pinguser", fallback='no')
+        self._catchhelper = self._pluginconfig.get("catchhelper", "activate_catchhelper", fallback='no')
+        self._bot_token = self._pluginconfig.get("catchhelper", "bot_token", fallback=None)
 
         # populate accounts_custom_display with custom pogo account usernames to display
         _accounts_usernames = self._pluginconfig.get("plugin", "accounts_usernames", fallback=None)
@@ -120,7 +124,6 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                         dbstatement = 'REPLACE INTO accounts_custom_display VALUES ("%s", "%s")' #(_acc_usr, _acc_cstm)
                         self._mad['logger'].debug("DB call: " + dbstatement)
                         results = self._mad['db_wrapper'].execute(dbstatement % (_acc_usr, _acc_cstm), commit=True)
-                        #results = self._mad['db_wrapper'].execute(dbstatement, (_acc_usr, _acc_cstm), commit=True)
                         self._mad['logger'].debug("DB results: " + str(results))
                     except:
                         self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to populate accounts_custom_display")
@@ -135,12 +138,28 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
         self.mswThread()
 
+        if self._catchhelper == 'yes' and self._bot_token is not None:
+            self.chThread()
+
         return True
+
 
     def mswThread(self):
         msw_worker = Thread(name="MadShinyWatcher", target=self.MadShinyWatcher)
         msw_worker.daemon = True
         msw_worker.start()
+
+    def chThread(self):
+        bot = CatchHelperBot(self._mad, description="Bot to restart the PoGo app")
+        asyncio.get_child_watcher()
+        loop = asyncio.get_event_loop()
+        sch_worker = Thread(name="ShinyCatchHelper", target=self.run_CatchHelper_forever, args=(loop, bot))
+        sch_worker.daemon = True
+        sch_worker.start()
+
+    def run_CatchHelper_forever(self, loop, bot):
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(bot.start(self._bot_token))
 
     def get_mon_name_plugin(self, mon_id):
         mons_file = mapadroid.utils.language.open_json_file('pokemon')
@@ -263,9 +282,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 else:
                     mon_level = round(171.0112688 * cpmult - 95.20425243)
 
-                #### REMOVED (NOT IMPORTANT/USEFUL) # encounter/found time
-                #encounterdate = datetime.fromtimestamp(result['timestamp_scan'], tz.tzlocal())
-                #encountertime = encounterdate.strftime("%-I:%M:%S %p")
+                # ### REMOVED # encounter/found time
+                # encounterdate = datetime.fromtimestamp(result['timestamp_scan'], tz.tzlocal())
+                # encountertime = encounterdate.strftime("%-I:%M:%S %p")
 
                 # Despawn time and remaining min/sec
                 despawndate = result['disappear_time']
@@ -279,6 +298,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 else:
                     remainingtime = despawndatelocal - datetime.now()
                     remainingminsec = divmod(remainingtime.seconds, 60)
+
                 # Location coords
                 lat = result['latitude']
                 lon = result['longitude']
@@ -373,3 +393,72 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         return render_template("mswreadme.html",
                                header="ShinyWatcher Readme", title="ShinyWatcher Readme"
                                )
+
+class CatchHelperBot(discord.Client):
+
+    def __init__(self, mad, description ):
+        super().__init__(command_prefix=['!'], description=description, pm_help=None,
+                         help_attrs=dict(hidden=True))
+        self._mad = mad
+        self.emoji_pause = '⏯️'
+        self.emoji_play = '▶️'
+        self.emoji_stop = '⏹️'
+
+    def run(self, BOT_TOKEN):
+        super().run(BOT_TOKEN, reconnect=True)
+
+    def stopPogo(self, device):
+        temp_comm = self._mad['ws_server'].get_origin_communicator(device)
+        temp_comm.stop_app("com.nianticlabs.pokemongo")
+
+    def startPogo(self, device):
+        temp_comm = self._mad['ws_server'].get_origin_communicator(device)
+        temp_comm.restart_app("com.nianticlabs.pokemongo")
+
+    def setDeviceState(self, device_origin, state):
+        try:
+            dbstatement = "SELECT DEVICE_ID FROM SETTINGS_DEVICE WHERE NAME = {}".format(device_origin)
+            device_id = self._mad['db_wrapper'].execute(dbstatement, commit=True)
+            self._mad['data_manager'].set_device_state(device_id, state)
+        except:
+            self._mad['logger'].info("Plugin - CatchHelperBot can not set state for device")
+
+    ################ EVENTS ###############
+    async def on_ready(self):
+        self._mad['logger'].info("MSW - CatchHelperBot is ready!")
+        await self.change_presence(activity=discord.Game(name="for shinies"))
+
+    async def close(self):
+        await super().close()
+        await s.session.close()
+
+    async def on_resumed(self):
+        self._mad['logger'].info('MSW - CatchHelperBot resumed...')
+
+    async def on_message(self, message):
+        await message.add_reaction(self.emoji_pause)
+        await message.add_reaction(self.emoji_play)
+        await message.add_reaction(self.emoji_stop)
+
+    async def on_reaction_add(self, reaction, user):
+        if user.bot:
+            self._mad['logger'].debug("MSW - reaction ignored")
+            return
+
+        device_origin_to_handle = re.split("\n", reaction.message.content)[2].split("/", 1)[0]
+
+        if reaction.emoji == self.emoji_pause:
+            self._mad['logger'].info("MSW - Pausing device: " + device_origin_to_handle)
+            self.setDeviceState(device_origin_to_handle, 0)
+            self.stopPogo(device_origin_to_handle)
+            time.sleep(300)
+            self.startPogo(device_origin_to_handle)
+            self.setDeviceState(device_origin_to_handle, 1)
+        elif reaction.emoji == self.emoji_play:
+            self._mad['logger'].info("MSW - Starting device: " + device_origin_to_handle)
+            self.startPogo(device_origin_to_handle)
+            self.setDeviceState(device_origin_to_handle, 1)
+        elif reaction.emoji == self.emoji_stop:
+            self._mad['logger'].info("MSW - Stopping device: " + device_origin_to_handle)
+            self.setDeviceState(device_origin_to_handle, 0)
+            self.stopPogo(device_origin_to_handle)
