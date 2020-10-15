@@ -3,8 +3,8 @@ active = true
 discord_webhookurl = https://required
 language = en,de,... choose one; if empty, defaults to en
 os = android,ios,both... choose one; if empty, defaults to both
-only_show_workers = atv01,atv55,atv3... if empty, defaults to show ALL workers
-exclude_mons = 1,3,6... (pokedex numbers) if empty, defaults to report ALL shinies encountered
+only_show_workers = ATV01,ATV19,ATV34... if empty, defaults to show ALL workers
+exlude_mons = 1,4,7... (pokedex numbers) if empty, defaults to report ALL shinies encountered
 mask_mail = no,yes,total... choose one; if empty, defaults to no
 pinguser = no,yes... if empty, defaults to no
 timezone_offset = 0... minutes. if empty, defaults to 0
@@ -13,3 +13,7 @@ accounts_display_custom = custom_displays_instead_of_ptc1,custom_gmail1@gmail.co
 
 [pingusermapping]
 device_origin = @discord_id... this_is_optional
+
+[catchhelper]
+activate_catchhelper = yes
+bot_token = required_for_use
