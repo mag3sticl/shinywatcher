@@ -12,7 +12,7 @@ Notifications are in the format: `Pokemon-name IV% Level# CP# Gender:symbol; Des
 - MAD and Discord only
 - only works with MAD plugin system
 - a discord_webhook must be configured in the MAD enviroment to receive notifications
-- `discord.py` has to be installed in the MAD environment to enable CatchHelper
+- `discord.py` has to be installed in the MAD environment to enable CatchHelper (https://github.com/Rapptz/discord.py)
 - a deparate <a href="https://discord.com/developers/applications/">Discord Bot</a> is required to use CatchHelper
 - `game_stats_raw` must be enabled within your MAD config
 - Pingusermapping and CatchHelper are optional
