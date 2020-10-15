@@ -4,21 +4,26 @@ Get support on this [Discord Server](https://discord.gg/cMZs5tk)
 
 Shiny Watcher checks your DB for active Shinies and then sends a notification to Discord if it finds any. It allows you to filter out Pokemon and Workers as well as connect a Login E-Mail to every worker.
 
-Notifications will always be: `Pokemon-name IV% L# CP# Gender:symbol \n Despawns: Time (time left) \n Worker name (account/email/)`. On Android devices, the coordinates are embeded so you can copy them by long-pressing (for ~2 seconds). Fast and easy. There's also an option to optimize what is displayed for iOS.
+Notifications are in the format: `Pokemon-name IV% Level# CP# Gender:symbol; Despawns: Time (time left); Worker name (account/email or PTC)`. On Android devices, the coordinates are embeded so you can copy them by long-pressing (for ~2 seconds). Fast and easy. There's also an option to optimize what is displayed for iOS.
 
 ![Screenshot](https://i.imgur.com/kvUSoI4.png)
 
 ## Notes
 - MAD and Discord only
 - only works with MAD plugin system
-- discord_webhook has to be installed in the MAD enviroment
-- You need to enable game_stats_raw at your MAD config
+- a discord_webhook must be configured in the MAD enviroment to receive notifications
+- `discord.py` has to be installed in the MAD environment to enable CatchHelper
+- a deparate <a href="https://discord.com/developers/applications/">Discord Bot</a> is required to use CatchHelper
+- `game_stats_raw` must be enabled within your MAD config
+- Pingusermapping and CatchHelper are optional
 - Credits to [CCEV](https://github.com/ccev/shinywatcher) who created the original version of shinywatcher
+- Special Credits to <a href="https://github.com/crhbetz">crhbetz</a> who made CatchHelper run in the plugin system
 
 ## Getting Started
-- import Plugin `ShinyWatcher.mp` via MADmin website at System > MAD Plugins
+- import Plugin `ShinyWatcher.mp` via MADmin website at `System > MAD Plugins`
+- install requirements.txt to your MAD python env
 - `cp plugin.ini.example plugin.ini`
-- Fill out plugin.ini (It's explained below what to fill in)
+- Fill out plugin.ini (it's explained below what to fill in)
 - restart MAD to activate the plugin configuration
 
 ## What to fill in
@@ -30,6 +35,9 @@ copy plugin.ini.example to plugin.ini and adjust it with your data
 
 ### Pingusermapping
 Ping one or more users in Discord when the mapped Scanner encounters a shiny. To get your User ID or anyone else’s User ID right click on their name and click “Copy ID” Alternative type there name as a mention and place a backslash \ in front of the mention.
+
+### Pingusermapping
+CatchHelper will add 3 buttons to discord notifications. By clicking the buttons, you can pause, start or stop your device to be able to login to your account with your phone. If you click the pause button the device will be paused for 5min.
 
 ###  plugin.ini
 
@@ -49,4 +57,8 @@ accounts_display_custom = Instead_of_privatePTC1,Instead_of_privateGmail1@gmail.
 
 [pingusermapping]
 device_origin = @xxxxxxxxxxxxxxxxxxxxxxxx
+
+[catchhelper]
+activate_catchhelper = yes
+bot_token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
