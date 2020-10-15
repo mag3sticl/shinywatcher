@@ -11,6 +11,10 @@ timezone_offset = 0... minutes. if empty, defaults to 0
 accounts_usernames = ptc1,gmail1@gmail.com,ptc55... if empty, no custom usernames displayed
 accounts_display_custom = custom_displays_instead_of_ptc1,custom_gmail1@gmail.com,custom_ptc55
 
+[catchhelper]
+activate_catchhelper = <yes or no>
+bot_token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 [pingusermapping]
 device_origin = @discord_id... this_is_optional
 

@@ -13,6 +13,7 @@ import discord
 import asyncio
 import re
 
+
 class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
     """This plugin is just the identity function: it returns the argument
     """
@@ -150,7 +151,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         msw_worker.start()
 
     def chThread(self):
-        bot = CatchHelperBot(self._mad, description="Bot to restart the PoGo app")
+        bot = CatchHelperBot(self._mad, description="Bot to control devices")
         asyncio.get_child_watcher()
         loop = asyncio.get_event_loop()
         sch_worker = Thread(name="ShinyCatchHelper", target=self.run_CatchHelper_forever, args=(loop, bot))
@@ -387,7 +388,6 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
             time.sleep(45)
 
-
     @auth_required
     def mswreadme_route(self):
         return render_template("mswreadme.html",
@@ -427,6 +427,7 @@ class CatchHelperBot(discord.Client):
     async def on_ready(self):
         self._mad['logger'].info("MSW - CatchHelperBot is ready!")
         await self.change_presence(activity=discord.Game(name="for shinies"))
+
 
     async def close(self):
         await super().close()

@@ -36,8 +36,10 @@ copy plugin.ini.example to plugin.ini and adjust it with your data
 ### Pingusermapping
 Ping one or more users in Discord when the mapped Scanner encounters a shiny. To get your User ID or anyone else’s User ID right click on their name and click “Copy ID” Alternative type there name as a mention and place a backslash \ in front of the mention.
 
-### Pingusermapping
+
+### CatchHelper
 CatchHelper will add 3 buttons to discord notifications. By clicking the buttons, you can pause, start or stop your device to be able to login to your account with your phone. If you click the pause button the device will be paused for 5min.
+
 
 ###  plugin.ini
 
@@ -62,3 +64,4 @@ device_origin = @xxxxxxxxxxxxxxxxxxxxxxxx
 activate_catchhelper = yes
 bot_token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
+
