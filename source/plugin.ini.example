@@ -8,6 +8,10 @@ exlude_mons = 1,4,7
 mask_mail = <yes or no>
 pinguser = <yes or no>
 
+[catchhelper]
+activate_catchhelper = <yes or no>
+bot_token = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'# Your bot's token
+
 [pingusermapping]
 device_origin = <@discord_id>
 device_origin = <@discord_id1>, <@discord_id2>

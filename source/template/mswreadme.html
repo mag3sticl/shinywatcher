@@ -40,6 +40,8 @@ The coordinates are in an embed so you can copy them by pressing for ~2 seconds 
 <code>
     &nbsp;&nbsp;&nbsp;- MAD and Discord only<br>
     &nbsp;&nbsp;&nbsp;- only works with MAD plugin system<br>
+    &nbsp;&nbsp;&nbsp;- discord_webhook has to be installed in the MAD enviroment<br>
+    &nbsp;&nbsp;&nbsp;- You need to enable game_stats_raw at your MAD config<br>
     &nbsp;&nbsp;&nbsp;- Credits to ccev who created the original version of shinywatcher https://github.com/ccev/shinywatcher <br>
 </code><br><br>
 <h3 id="configplugin">Config Plugin</h3>
@@ -50,6 +52,13 @@ copy plugin.ini.example to plugin.ini and adjust it with your data<br>
 - ONLY_SHOW_WORKERS Leave blank if you want notifications from all workers. If you only want them from certain Accounts, follow the format in the example<br>
 - EXCLUDE_MONS Filter out Mons you already have enough Shinies of. Follow the example format!<br>
 - OS Set your notifications to android or ios mode. On Android, messages have an embed contaning the coords. For iOS an extra message containing coords will be sent<br>
+<br>
+###Pingusermapping:<br> 
+Ping one or more users in Discord when the mapped Scanner encounters a shiny. To get your User ID or anyone else’s User ID right click on their name and click “Copy ID” Alternative type there name as a mention and place a backslash \ in front of the mention.<br>
+<br>
+###CatchHelper:<br>
+CatchHelper will add 3 buttons to the notification. By clicking the buttons you can pause, start and stop your device to be able to login to your account with your phone. If you click the pause button the device will be paused for 5min.
+<br>
 </code><br><br>
     &nbsp;plugin.ini:
 <code>
@@ -60,7 +69,18 @@ copy plugin.ini.example to plugin.ini and adjust it with your data<br>
     &nbsp;&nbsp;&nbsp;os = android<br>
     &nbsp;&nbsp;&nbsp;only_show_workers = ATV01,ATV19,ATV34<br>
     &nbsp;&nbsp;&nbsp;exlude_mons = 1,4,7<br>
-</code><br><br>
+</code><br>
+<code>
+    &nbsp;&nbsp;&nbsp;[pingusermapping]<br>
+    &nbsp;&nbsp;&nbsp;device_origin = <@xxxxxxxxxxxxxxxxxxxxxxxx><br>
+    &nbsp;&nbsp;&nbsp;webhookurl: https://discord.com/api/webhooks/xxxxxxxx<br>
+</code><br>
+<code>
+    &nbsp;&nbsp;&nbsp;[catchhelper]<br>
+    &nbsp;&nbsp;&nbsp;activate_catchhelper = yes<br>
+    &nbsp;&nbsp;&nbsp;bot_token = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'<br>
+</code><br>
+<br><br>
 <h3 id="example">Example</h3>
 <br><center>
 <img src="https://camo.githubusercontent.com/b6404043b54c297a4677c93b8e972c2a4bdc37e4/68747470733a2f2f692e696d6775722e636f6d2f6b7655536f49342e706e67">

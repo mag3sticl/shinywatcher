@@ -11,12 +11,15 @@ Notifications will always be: `Name (Gender-symbol, IV%, lv#) Found: Time. Despa
 ## Notes
 - MAD and Discord only
 - only works with MAD plugin system
-- discord_webhook has to be installed in the MAD enviroment
+- discord_webhook has to be installed in the MAD enviroment for notification
+- discord has to be installed in the MAD enviroment for CatchHelper
 - You need to enable game_stats_raw at your MAD config
+- Pingusermapping and CatchHelper are optional
 - Credits to [CCEV](https://github.com/ccev/shinywatcher) who created the original version of shinywatcher
 
 ## Getting Started
 - import Plugin `ShinyWatcher.mp` via MADmin website at System > MAD Plugins
+- install requirements.txt to your MAD python env
 - `cp plugin.ini.example plugin.ini`
 - Fill out plugin.ini (It's explained below what to fill in)
 - restart MAD to activate the plugin configuration
@@ -30,6 +33,9 @@ copy plugin.ini.example to plugin.ini and adjust it with your data
 
 ###Pingusermapping
 Ping one or more users in Discord when the mapped Scanner encounters a shiny. To get your User ID or anyone else’s User ID right click on their name and click “Copy ID” Alternative type there name as a mention and place a backslash \ in front of the mention.
+
+###CatchHelper
+CatchHelper will add 3 buttons to the notification. By clicking the buttons you can pause, start and stop your device to be able to login to your account with your phone. If you click the pause button the device will be paused for 5min.
 
 ###  plugin.ini
 
@@ -46,4 +52,8 @@ pinguser = yes
 
 [pingusermapping]
 device_origin = <@xxxxxxxxxxxxxxxxxxxxxxxx>
+
+[catchhelper]
+activate_catchhelper = yes
+bot_token = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 ```
