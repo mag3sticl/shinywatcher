@@ -17,6 +17,7 @@ Notifications will always be: `Name (Gender-symbol, IV%, lv#) Found: Time. Despa
 - You need to enable game_stats_raw at your MAD config
 - Pingusermapping and CatchHelper are optional
 - Credits to [CCEV](https://github.com/ccev/shinywatcher) who created the original version of shinywatcher
+- Special Credits to [crhbetz](https://github.com/crhbetz) who make the CatchHelper running in the plugin system
 
 ## Getting Started
 - import Plugin `ShinyWatcher.mp` via MADmin website at System > MAD Plugins
