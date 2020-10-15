@@ -13,6 +13,7 @@ Notifications will always be: `Name (Gender-symbol, IV%, lv#) Found: Time. Despa
 - only works with MAD plugin system
 - discord_webhook has to be installed in the MAD enviroment for notification
 - discord has to be installed in the MAD enviroment for CatchHelper
+- you have to create a Discord bot [here](https://discord.com/developers/applications/) to use CatchHelper
 - You need to enable game_stats_raw at your MAD config
 - Pingusermapping and CatchHelper are optional
 - Credits to [CCEV](https://github.com/ccev/shinywatcher) who created the original version of shinywatcher
