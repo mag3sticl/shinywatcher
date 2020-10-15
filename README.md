@@ -57,5 +57,5 @@ device_origin = <@xxxxxxxxxxxxxxxxxxxxxxxx>
 
 [catchhelper]
 activate_catchhelper = yes
-bot_token = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+bot_token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```

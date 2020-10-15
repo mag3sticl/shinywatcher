@@ -10,7 +10,7 @@ pinguser = <yes or no>
 
 [catchhelper]
 activate_catchhelper = <yes or no>
-bot_token = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'# Your bot's token
+bot_token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 [pingusermapping]
 device_origin = <@discord_id>
