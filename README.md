@@ -12,7 +12,7 @@ Notifications are in the format: `Pokemon-name IV% Level# CP# Gender:symbol; Des
 - MAD and Discord only
 - only works with MAD plugin system
 - a discord_webhook must be configured in the MAD enviroment to receive notifications
-- `discord.py` has to be installed in the MAD environment to enable CatchHelper
+- `discord.py` has to be installed in the MAD environment to enable CatchHelper (https://github.com/Rapptz/discord.py)
 - a deparate <a href="https://discord.com/developers/applications/">Discord Bot</a> is required to use CatchHelper
 - `game_stats_raw` must be enabled within your MAD config
 - Pingusermapping and CatchHelper are optional
@@ -38,7 +38,7 @@ Ping one or more users in Discord when the mapped Scanner encounters a shiny. To
 
 
 ### CatchHelper
-CatchHelper will add 3 buttons to discord notifications. By clicking the buttons, you can pause, start or stop your device to be able to login to your account with your phone. If you click the pause button the device will be paused for 5min.
+CatchHelper will add 3 buttons to discord notifications. By clicking the buttons, you can pause, start or stop your device to be able to login to your account with your phone. If you click the pause button the device will stop and pause for 5min before re-starting.
 
 
 ###  plugin.ini
@@ -57,11 +57,15 @@ timezone_offset = 0
 accounts_usernames = privatePTC1,privateGmail1@gmail.com
 accounts_display_custom = Instead_of_privatePTC1,Instead_of_privateGmail1@gmail.com
 
-[pingusermapping]
-device_origin = @xxxxxxxxxxxxxxxxxxxxxxxx
-
 [catchhelper]
 activate_catchhelper = yes
 bot_token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+pause_time = 2
+play_button = true
+pause_button = true
+stop_button = true
+
+[pingusermapping]
+device_origin = @xxxxxxxxxxxxxxxxxxxxxxxx
 ```
 

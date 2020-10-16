@@ -1,23 +1,23 @@
 [plugin]
 active = true
 discord_webhookurl = https://required
-language = en,de,... choose one; if empty, defaults to en
-os = android,ios,both... choose one; if empty, defaults to both
-only_show_workers = ATV01,ATV19,ATV34... if empty, defaults to show ALL workers
-exlude_mons = 1,4,7... (pokedex numbers) if empty, defaults to report ALL shinies encountered
-mask_mail = no,yes,total... choose one; if empty, defaults to no
-pinguser = no,yes... if empty, defaults to no
-timezone_offset = 0... minutes. if empty, defaults to 0
+language = en,de,etc... choose one; defaults to en
+os = android,ios,both... choose one; defaults to both
+only_show_workers = ATV01,ATV19,ATV34... defaults to show ALL workers
+exlude_mons = 1,4,7... (pokedex numbers) defaults to report ALL shinies encountered
+mask_mail = no,yes,total... choose one; defaults to no
+pinguser = no,yes... defaults to no
+timezone_offset = 0... minutes. defaults to 0
 accounts_usernames = ptc1,gmail1@gmail.com,ptc55... if empty, no custom usernames displayed
 accounts_display_custom = custom_displays_instead_of_ptc1,custom_gmail1@gmail.com,custom_ptc55
 
 [catchhelper]
-activate_catchhelper = <yes or no>
-bot_token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+activate_catchhelper = yes,no... choose one; defaults to no
+bot_token = required_for_use
+pause_time = 5... minutes. time between stopping and restarting; defaults to 5min
+play_button = true,false... defaults to true (shows or hides button)
+pause_button = true,false... defaults to true
+stop_button = true,false... defaults to true
 
 [pingusermapping]
 device_origin = @discord_id... this_is_optional
-
-[catchhelper]
-activate_catchhelper = yes
-bot_token = required_for_use
