@@ -60,7 +60,10 @@ accounts_display_custom = Instead_of_privatePTC1,Instead_of_privateGmail1@gmail.
 [catchhelper]
 activate_catchhelper = yes
 bot_token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-pause_time = 5
+pause_time = 2
+play_button = true
+pause_button = true
+stop_button = true
 
 [pingusermapping]
 device_origin = @xxxxxxxxxxxxxxxxxxxxxxxx
