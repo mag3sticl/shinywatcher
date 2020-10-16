@@ -114,8 +114,8 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._bot_token = self._pluginconfig.get("catchhelper", "bot_token", fallback=None)
 
         # populate accounts_custom_display with custom pogo account usernames to display
-        _accounts_usernames = self._pluginconfig.get("plugin", "accounts_usernames", fallback=None)
-        _accounts_display_custom = self._pluginconfig.get("plugin", "accounts_display_custom", fallback=None)
+        _accounts_usernames = self._pluginconfig.get("plugin", "accounts_usernames", fallback="")
+        _accounts_display_custom = self._pluginconfig.get("plugin", "accounts_display_custom", fallback="")
         if _accounts_usernames != "" and _accounts_display_custom != "":
             _accounts_usernames_list = _accounts_usernames.split(",")
             _accounts_display_custom_list = _accounts_display_custom.split(",")
