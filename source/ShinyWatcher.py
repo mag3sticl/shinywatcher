@@ -112,6 +112,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._pinguser = self._pluginconfig.get("plugin", "pinguser", fallback='no')
         self._catchhelper = self._pluginconfig.get("catchhelper", "activate_catchhelper", fallback='no')
         self._bot_token = self._pluginconfig.get("catchhelper", "bot_token", fallback=None)
+        self._catchhelper_exclude_play = self._pluginconfig.get("catchhelper", "exclude_play", fallback='no')
+        self._catchhelper_exclude_pause = self._pluginconfig.get("catchhelper", "exclude_pause", fallback='no')
+        self._catchhelper_exclude_stop = self._pluginconfig.get("catchhelper", "exclude_stop", fallback='no')
 
         # set specified pause time, converting from minutes to seconds
         __pause_time = self._pluginconfig.getint("catchhelper", "pause_time", fallback=5)
@@ -204,10 +207,12 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         devicemapping = self._mad['mapping_manager'].get_all_devicemappings()
         self._mad['logger'].debug(devicemapping)
 
-        worker_filter = ""
+        worker_filter_using_name = ""
+        worker_filter_using_t = ""
         if not self._only_show_workers == "":
             self._only_show_workers = "'" + (self._only_show_workers).replace(",","','") + "'"
-            worker_filter = f"AND t.worker in ({self._only_show_workers})"
+            worker_filter_using_name = f"AND name in ({self._only_show_workers})"
+            worker_filter_using_t = f"AND t.worker in ({self._only_show_workers})"
 
         for worker in devicemapping:
             devicesettings = devicemapping[worker]
@@ -221,7 +226,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 " t_auth JOIN settings_device WHERE t_auth.device_id = settings_device.device_id"
                 " AND logintype = t_auth.login_type AND name = '%s' {}" %
                 (str(worker))
-            ).format(worker_filter)
+            ).format(worker_filter_using_name)
             self._mad['logger'].debug("MSW - DB query: " + query)
             results = self._mad['db_wrapper'].autofetch_all(query)
             self._mad['logger'].debug("MSW - DB result: " + str(results))
@@ -246,7 +251,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 " FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON"
                 " pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 AND pokemon.encounter_id"
                 " NOT IN (SELECT encounter_id FROM shiny_history) {} ORDER BY pokemon_id DESC, disappear_time DESC"
-            ).format(worker_filter)
+            ).format(worker_filter_using_t)
             self._mad['logger'].debug("MSW - DB query: " + query)
             results = self._mad['db_wrapper'].autofetch_all(query)
             self._mad['logger'].debug("MSW - DB result: " + str(results))
