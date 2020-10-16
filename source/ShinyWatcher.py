@@ -120,6 +120,10 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         __pause_time = self._pluginconfig.getint("catchhelper", "pause_time", fallback=5)
         self._pause_time = __pause_time * 60
 
+        # set specified pause time, converting from minutes to seconds
+        __pause_time = self._pluginconfig.getint("catchhelper", "pause_time", fallback=5)
+        self._pause_time = __pause_time * 60
+
         # populate accounts_custom_display with custom pogo account usernames to display
         _accounts_usernames = self._pluginconfig.get("plugin", "accounts_usernames", fallback='')
         _accounts_display_custom = self._pluginconfig.get("plugin", "accounts_display_custom", fallback='')
@@ -160,6 +164,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
     def chThread(self):
         bot = CatchHelperBot(self._pause_time, self._include_play, self._include_pause, self._include_stop,
             self._device_ids, self._mad, description="Bot to restart the PoGo app")
+
         asyncio.get_child_watcher()
         loop = asyncio.get_event_loop()
         sch_worker = Thread(name="ShinyCatchHelper", target=self.run_CatchHelper_forever, args=(loop, bot))
