@@ -66,38 +66,38 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
         # do not start plugin when in config mode
         if self._mad['args'].config_mode == True:
-            self._mad['logger'].info("Plugin - ShinyWatcher is not aktive while configmode")
+            self._mad['logger'].info("Plugin - MAD ShinyWatcher is not active while configmode")
             return False
 
         # create shiny_history table in db, if it does not already exist
         try:
             dbstatement = "CREATE TABLE IF NOT EXISTS shiny_history(encounter_id BIGINT UNSIGNED NOT NULL)"
-            self._mad['logger'].debug("DB call: " + dbstatement)
+            self._mad['logger'].debug("MSW - DB call: " + dbstatement)
             results = self._mad['db_wrapper'].execute(dbstatement, commit=True)
-            self._mad['logger'].debug("DB results: " + str(results))
+            self._mad['logger'].debug("MSW - DB results: " + str(results))
         except:
-            self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to create table shiny_history")
+            self._mad['logger'].info("Plugin - MAD ShinyWatcher had exception when trying to create table shiny_history")
 
         # populate shiny_history table with existing shiny encounters, if they do not yet exist in the history table
         try:
             dbstatement = ("INSERT INTO shiny_history (encounter_id) SELECT pokemon.encounter_id FROM pokemon LEFT JOIN"
                 " trs_stats_detect_mon_raw t ON pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 and"
                 " pokemon.encounter_id NOT IN (SELECT encounter_id FROM shiny_history)")
-            self._mad['logger'].debug("DB call: " + dbstatement)
+            self._mad['logger'].debug("MSW - DB call: " + dbstatement)
             results = self._mad['db_wrapper'].execute(dbstatement, commit=True)
-            self._mad['logger'].debug("DB results: " + str(results))
+            self._mad['logger'].debug("MSW - DB results: " + str(results))
         except:
-            self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to populate shiny_history with existing pokmeon")
+            self._mad['logger'].info("Plugin - MAD ShinyWatcher had exception when trying to populate shiny_history with existing pokmeon")
 
         # create accounts_custom_display table in db, if it does not already exit
         try:
             dbstatement = ("CREATE TABLE IF NOT EXISTS accounts_custom_display(username varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,"
                 " display_text VARCHAR(128), PRIMARY KEY (username))")
-            self._mad['logger'].debug("DB call: " + dbstatement)
+            self._mad['logger'].debug("MSW - DB call: " + dbstatement)
             results = self._mad['db_wrapper'].execute(dbstatement, commit=True)
-            self._mad['logger'].debug("DB results: " + str(results))
+            self._mad['logger'].debug("MSW - DB results: " + str(results))
         except:
-            self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to create table accounts_custom_display")
+            self._mad['logger'].info("Plugin - MAD ShinyWatcher had exception when trying to create table accounts_custom_display")
 
         # read config parameter
         self._workers: dict = {}
@@ -105,8 +105,8 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
         self._language = self._pluginconfig.get("plugin", "language", fallback='en')
         self._os = self._pluginconfig.get("plugin", "os", fallback='both')
-        self._only_show_workers = self._pluginconfig.get("plugin", "only_show_workers", fallback=None)
-        self._exclude_mons = self._pluginconfig.get("plugin", "exclude_mons", fallback=None)
+        self._only_show_workers = self._pluginconfig.get("plugin", "only_show_workers", fallback='')
+        self._exclude_mons = self._pluginconfig.get("plugin", "exclude_mons", fallback='')
         self._webhookurl = self._pluginconfig.get("plugin", "discord_webhookurl", fallback=None)
         self._mask_mail = self._pluginconfig.get("plugin", "mask_mail", fallback='no')
         self._pinguser = self._pluginconfig.get("plugin", "pinguser", fallback='no')
@@ -118,8 +118,8 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._pause_time = __pause_time * 60
 
         # populate accounts_custom_display with custom pogo account usernames to display
-        _accounts_usernames = self._pluginconfig.get("plugin", "accounts_usernames", fallback=None)
-        _accounts_display_custom = self._pluginconfig.get("plugin", "accounts_display_custom", fallback=None)
+        _accounts_usernames = self._pluginconfig.get("plugin", "accounts_usernames", fallback='')
+        _accounts_display_custom = self._pluginconfig.get("plugin", "accounts_display_custom", fallback='')
         if _accounts_usernames != "" and _accounts_display_custom != "":
             _accounts_usernames_list = _accounts_usernames.split(",")
             _accounts_display_custom_list = _accounts_display_custom.split(",")
@@ -127,11 +127,11 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 for _acc_usr,_acc_cstm in zip(_accounts_usernames_list,_accounts_display_custom_list):
                     try:
                         dbstatement = 'REPLACE INTO accounts_custom_display VALUES ("%s", "%s")'
-                        self._mad['logger'].debug("DB call: " + dbstatement)
+                        self._mad['logger'].debug("MSW - DB call: " + dbstatement)
                         results = self._mad['db_wrapper'].execute(dbstatement % (_acc_usr, _acc_cstm), commit=True)
-                        self._mad['logger'].debug("DB results: " + str(results))
+                        self._mad['logger'].debug("MSW - DB results: " + str(results))
                     except:
-                        self._mad['logger'].info("Plugin - ShinyWatcher had exception when trying to populate accounts_custom_display")
+                        self._mad['logger'].info("Plugin - MAD ShinyWatcher had exception when trying to populate accounts_custom_display")
 
         # timezone offset
         self._timezone_offset = 0
@@ -222,17 +222,19 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 " AND logintype = t_auth.login_type AND name = '%s' {}" %
                 (str(worker))
             ).format(worker_filter)
-            self._mad['logger'].debug("MSW DB query: " + query)
+            self._mad['logger'].debug("MSW - DB query: " + query)
             results = self._mad['db_wrapper'].autofetch_all(query)
-            self._mad['logger'].debug("MSW DB result: " + str(results))
+            self._mad['logger'].debug("MSW - DB result: " + str(results))
 
             loginaccount = "unknown"
             worker_device_id = 0 #unknown
             if len(results) > 0:
-                loginaccount = results[0]['text_to_display'].decode()
+                loginaccount = results[0]['text_to_display']
+                if isinstance(loginaccount, bytearray):
+                    loginaccount = loginaccount.decode()
                 worker_device_id = results[0]['device_id']
             else:
-                self._mad['logger'].info(f"Could not find PoGo Account for device: {worker}")
+                self._mad['logger'].info(f"MSW - Could not find PoGo Account for device: {worker}")
             self._workers[worker] = loginaccount
             self._device_ids[worker] = worker_device_id
 
@@ -245,9 +247,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 " pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 AND pokemon.encounter_id"
                 " NOT IN (SELECT encounter_id FROM shiny_history) {} ORDER BY pokemon_id DESC, disappear_time DESC"
             ).format(worker_filter)
-            self._mad['logger'].debug("MSW DB query: " + query)
+            self._mad['logger'].debug("MSW - DB query: " + query)
             results = self._mad['db_wrapper'].autofetch_all(query)
-            self._mad['logger'].debug("MSW DB result: " + str(results))
+            self._mad['logger'].debug("MSW - DB result: " + str(results))
             for result in results:
 
                 encounterid = result['encounter_id']
@@ -261,12 +263,12 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 mon_name = self.get_mon_name_plugin(pid)
 
                 if pid in self._exclude_mons:
-                    self._mad['logger'].info(f"Skipping excluded shiny: {mon_name}")
+                    self._mad['logger'].info(f"MSW - Skipping excluded shiny: {mon_name}")
                     continue
 
                 mon_img = f"https://raw.githubusercontent.com/Plaryu/PJSsprites/master/pokemon_icon_{pid.zfill(3)}_00.png"
 
-                self._mad['logger'].info(f"Reporting shiny: {mon_name}")
+                self._mad['logger'].info(f"MSW - Reporting shiny: {mon_name}")
 
                 # pokemon gender
                 gendericon = '⚪' # genderless
@@ -326,7 +328,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     pogologin = '**@*.*'
                 else:
                     pogologin = self.strip_end_email(pogologin)
-                # self._mad['logger'].info(f"Pogo Login set for {worker}:{pogologin}")
+                # self._mad['logger'].info(f"MSW - Pogo Login set for {worker}:{pogologin}")
 
                 if self._pinguser == 'yes':
                     worker = self._pluginconfig.get("pingusermapping", worker, fallback=worker)
@@ -413,6 +415,9 @@ class CatchHelperBot(discord.Client):
         self.emoji_pause = '⏯️'
         self.emoji_play = '▶️'
         self.emoji_stop = '⏹️'
+        self.emoji_paused = '⏸️'
+        self.emoji_arrow = '➡️'
+        self.emoji_complete = '✔️'
 
     def run(self, BOT_TOKEN):
         super().run(BOT_TOKEN, reconnect=True)
@@ -438,33 +443,47 @@ class CatchHelperBot(discord.Client):
         self._mad['logger'].info('MSW - CatchHelperBot resumed...')
 
     async def on_message(self, message):
+        if message.author == self.user:
+            return
+
         await message.add_reaction(self.emoji_pause)
         await message.add_reaction(self.emoji_play)
         await message.add_reaction(self.emoji_stop)
 
     async def on_reaction_add(self, reaction, user):
         if user.bot:
-            self._mad['logger'].debug("MSW - reaction ignored")
+            self._mad['logger'].debug("MSW - CatchHelperBot ignored reaction")
             return
 
         device_origin_to_handle = re.split("\n", reaction.message.content)[2].split("/", 1)[0]
 
         if reaction.emoji == self.emoji_pause:
-            self._mad['logger'].info(f"MSW - Paussing device: " + device_origin_to_handle + " for " + str(self._pausetime) + " seconds.")
+            self._mad['logger'].info(f"MSW - Pausing device: " + device_origin_to_handle + " for " + str(self._pausetime) + " seconds.")
+            await reaction.message.add_reaction(self.emoji_arrow)
             self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 0)
             self.stopPogo(device_origin_to_handle)
+            await reaction.message.add_reaction(self.emoji_paused)
             await asyncio.sleep(self._pausetime) # time.sleep(self._pausetime)
             self._mad['logger'].info(f"MSW - Re-starting device: " + device_origin_to_handle + " after pause.")
             self.startPogo(device_origin_to_handle)
             self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 1)
+            await reaction.message.remove_reaction(self.emoji_arrow, self.user)
+            await reaction.message.remove_reaction(self.emoji_paused, self.user)
+            await reaction.message.add_reaction(self.emoji_complete)
             self._mad['logger'].info(f"MSW - Pause of device: " + device_origin_to_handle + " is complete.")
         elif reaction.emoji == self.emoji_play:
             self._mad['logger'].info(f"MSW - Starting device: " + device_origin_to_handle)
+            await reaction.message.add_reaction(self.emoji_arrow)
             self.startPogo(device_origin_to_handle)
             self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 1)
             self._mad['logger'].info(f"MSW - Starting device: " + device_origin_to_handle + " is complete.")
+            await reaction.message.remove_reaction(self.emoji_arrow, self.user)
+            await reaction.message.add_reaction(self.emoji_complete)
         elif reaction.emoji == self.emoji_stop:
             self._mad['logger'].info(f"MSW - Stopping device: " + device_origin_to_handle)
+            await reaction.message.add_reaction(self.emoji_arrow)
             self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 0)
             self.stopPogo(device_origin_to_handle)
             self._mad['logger'].info(f"MSW - Stopping device: " + device_origin_to_handle + " is complete.")
+            await reaction.message.remove_reaction(self.emoji_arrow, self.user)
+            await reaction.message.add_reaction(self.emoji_complete)
