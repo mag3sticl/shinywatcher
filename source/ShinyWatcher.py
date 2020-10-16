@@ -112,9 +112,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._pinguser = self._pluginconfig.get("plugin", "pinguser", fallback='no')
         self._catchhelper = self._pluginconfig.get("catchhelper", "activate_catchhelper", fallback='no')
         self._bot_token = self._pluginconfig.get("catchhelper", "bot_token", fallback=None)
-        self._include_play = self._pluginconfig.getboolean("catchhelper", "include_play", fallback=True)
-        self._include_pause = self._pluginconfig.getboolean("catchhelper", "include_pause", fallback=True)
-        self._include_stop = self._pluginconfig.getboolean("catchhelper", "include_stop", fallback=True)
+        self._include_play = self._pluginconfig.getboolean("catchhelper", "play_button", fallback=True)
+        self._include_pause = self._pluginconfig.getboolean("catchhelper", "pause_button", fallback=True)
+        self._include_stop = self._pluginconfig.getboolean("catchhelper", "stop_button", fallback=True)
 
         # set specified pause time, converting from minutes to seconds
         __pause_time = self._pluginconfig.getint("catchhelper", "pause_time", fallback=5)
