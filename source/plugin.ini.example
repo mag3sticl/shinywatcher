@@ -1,7 +1,7 @@
 [plugin]
 active = true
 discord_webhookurl = https://required
-language = en,de,... choose one; defaults to en
+language = en,de,etc... choose one; defaults to en
 os = android,ios,both... choose one; defaults to both
 only_show_workers = ATV01,ATV19,ATV34... defaults to show ALL workers
 exlude_mons = 1,4,7... (pokedex numbers) defaults to report ALL shinies encountered
@@ -14,7 +14,10 @@ accounts_display_custom = custom_displays_instead_of_ptc1,custom_gmail1@gmail.co
 [catchhelper]
 activate_catchhelper = yes,no... choose one; defaults to no
 bot_token = required_for_use
-pause_time = 5... minutes. time between stopping and restarting; defaults to 5
+pause_time = 5... minutes. time between stopping and restarting; defaults to 5min
+include_play = true,false... defaults to true
+include_pause = true,false... defaults to true
+include_stop = true,false... defaults to true
 
 [pingusermapping]
 device_origin = @discord_id... this_is_optional
