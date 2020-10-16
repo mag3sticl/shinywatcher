@@ -112,9 +112,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._pinguser = self._pluginconfig.get("plugin", "pinguser", fallback='no')
         self._catchhelper = self._pluginconfig.get("catchhelper", "activate_catchhelper", fallback='no')
         self._bot_token = self._pluginconfig.get("catchhelper", "bot_token", fallback=None)
-        self._catchhelper_exclude_play = self._pluginconfig.get("catchhelper", "exclude_play", fallback='no')
-        self._catchhelper_exclude_pause = self._pluginconfig.get("catchhelper", "exclude_pause", fallback='no')
-        self._catchhelper_exclude_stop = self._pluginconfig.get("catchhelper", "exclude_stop", fallback='no')
+        self._include_play = self._pluginconfig.getboolean("catchhelper", "include_play", fallback=True)
+        self._include_pause = self._pluginconfig.getboolean("catchhelper", "include_pause", fallback=True)
+        self._include_stop = self._pluginconfig.getboolean("catchhelper", "include_stop", fallback=True)
 
         # set specified pause time, converting from minutes to seconds
         __pause_time = self._pluginconfig.getint("catchhelper", "pause_time", fallback=5)
@@ -158,7 +158,8 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         msw_worker.start()
 
     def chThread(self):
-        bot = CatchHelperBot(self._pause_time, self._device_ids, self._mad, description="Bot to restart the PoGo app")
+        bot = CatchHelperBot(self._pause_time, self._include_play, self._include_pause, self._include_stop,
+            self._device_ids, self._mad, description="Bot to restart the PoGo app")
         asyncio.get_child_watcher()
         loop = asyncio.get_event_loop()
         sch_worker = Thread(name="ShinyCatchHelper", target=self.run_CatchHelper_forever, args=(loop, bot))
@@ -411,18 +412,21 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
 class CatchHelperBot(discord.Client):
 
-    def __init__(self, pausetime, deviceids, mad, description):
+    def __init__(self, pausetime, include_play, include_pause, include_stop, deviceids, mad, description):
         super().__init__(command_prefix=['!'], description=description, pm_help=None,
                          help_attrs=dict(hidden=True))
         self._mad = mad
         self._pausetime = pausetime
+        self._include_play = include_play
+        self._include_pause = include_pause
+        self._include_stop = include_stop
         self._deviceids = deviceids
-        self.emoji_pause = '⏯️'
-        self.emoji_play = '▶️'
-        self.emoji_stop = '⏹️'
-        self.emoji_paused = '⏸️'
-        self.emoji_arrow = '➡️'
-        self.emoji_complete = '✔️'
+        self._emoji_pause = '⏯️'
+        self._emoji_play = '▶️'
+        self._emoji_stop = '⏹️'
+        self._emoji_paused = '⏸️'
+        self._emoji_arrow = '➡️'
+        self._emoji_complete = '✔️'
 
     def run(self, BOT_TOKEN):
         super().run(BOT_TOKEN, reconnect=True)
@@ -451,9 +455,12 @@ class CatchHelperBot(discord.Client):
         if message.author == self.user:
             return
 
-        await message.add_reaction(self.emoji_pause)
-        await message.add_reaction(self.emoji_play)
-        await message.add_reaction(self.emoji_stop)
+        if self._include_pause:
+            await message.add_reaction(self._emoji_pause)
+        if self._include_play:
+            await message.add_reaction(self._emoji_play)
+        if self._include_stop:
+            await message.add_reaction(self._emoji_stop)
 
     async def on_reaction_add(self, reaction, user):
         if user.bot:
@@ -462,33 +469,33 @@ class CatchHelperBot(discord.Client):
 
         device_origin_to_handle = re.split("\n", reaction.message.content)[2].split("/", 1)[0]
 
-        if reaction.emoji == self.emoji_pause:
+        if self._include_pause and reaction.emoji == self._emoji_pause:
             self._mad['logger'].info(f"MSW - Pausing device: " + device_origin_to_handle + " for " + str(self._pausetime) + " seconds.")
-            await reaction.message.add_reaction(self.emoji_arrow)
+            await reaction.message.add_reaction(self._emoji_arrow)
             self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 0)
             self.stopPogo(device_origin_to_handle)
-            await reaction.message.add_reaction(self.emoji_paused)
+            await reaction.message.add_reaction(self._emoji_paused)
             await asyncio.sleep(self._pausetime) # time.sleep(self._pausetime)
             self._mad['logger'].info(f"MSW - Re-starting device: " + device_origin_to_handle + " after pause.")
             self.startPogo(device_origin_to_handle)
             self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 1)
-            await reaction.message.remove_reaction(self.emoji_arrow, self.user)
-            await reaction.message.remove_reaction(self.emoji_paused, self.user)
-            await reaction.message.add_reaction(self.emoji_complete)
+            await reaction.message.remove_reaction(self._emoji_arrow, self.user)
+            await reaction.message.remove_reaction(self._emoji_paused, self.user)
+            await reaction.message.add_reaction(self._emoji_complete)
             self._mad['logger'].info(f"MSW - Pause of device: " + device_origin_to_handle + " is complete.")
-        elif reaction.emoji == self.emoji_play:
+        elif self._include_play and reaction.emoji == self._emoji_play:
             self._mad['logger'].info(f"MSW - Starting device: " + device_origin_to_handle)
-            await reaction.message.add_reaction(self.emoji_arrow)
+            await reaction.message.add_reaction(self._emoji_arrow)
             self.startPogo(device_origin_to_handle)
             self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 1)
             self._mad['logger'].info(f"MSW - Starting device: " + device_origin_to_handle + " is complete.")
-            await reaction.message.remove_reaction(self.emoji_arrow, self.user)
-            await reaction.message.add_reaction(self.emoji_complete)
-        elif reaction.emoji == self.emoji_stop:
+            await reaction.message.remove_reaction(self._emoji_arrow, self.user)
+            await reaction.message.add_reaction(self._emoji_complete)
+        elif self._include_stop and reaction.emoji == self._emoji_stop:
             self._mad['logger'].info(f"MSW - Stopping device: " + device_origin_to_handle)
-            await reaction.message.add_reaction(self.emoji_arrow)
+            await reaction.message.add_reaction(self._emoji_arrow)
             self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 0)
             self.stopPogo(device_origin_to_handle)
             self._mad['logger'].info(f"MSW - Stopping device: " + device_origin_to_handle + " is complete.")
-            await reaction.message.remove_reaction(self.emoji_arrow, self.user)
-            await reaction.message.add_reaction(self.emoji_complete)
+            await reaction.message.remove_reaction(self._emoji_arrow, self.user)
+            await reaction.message.add_reaction(self._emoji_complete)
