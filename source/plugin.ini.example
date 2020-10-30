@@ -7,7 +7,7 @@ only_show_workers = ATV01,ATV19,ATV34... defaults to show ALL workers
 exlude_mons = 1,4,7... (pokedex numbers) defaults to report ALL shinies encountered
 mask_mail = no,yes,total... choose one; defaults to no
 pinguser = no,yes... defaults to no
-timezone_offset = 0... minutes. defaults to 0
+timezone_offset =  (0... minutes. Must be an int, no decimal values allowed to enable custom offset. Defaults to no/disabled) 
 accounts_usernames = ptc1,gmail1@gmail.com,ptc55... if empty, no custom usernames displayed
 accounts_display_custom = custom_displays_instead_of_ptc1,custom_gmail1@gmail.com,custom_ptc55
 
