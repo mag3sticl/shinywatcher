@@ -142,8 +142,8 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
         # timezone offset
         self._timezone_offset = 0
-        self._user_supplied_offset = self._pluginconfig.getint("plugin", "timezone_offset", fallback=0)
-        if self._user_supplied_offset == 0:
+        self._user_supplied_offset = self._pluginconfig.getint("plugin", "timezone_offset", fallback='no')
+        if type(self._user_supplied_offset) != int:
              self._timezone_offset = datetime.now() - datetime.utcnow()
         else:
              self._timezone_offset = timedelta(minutes=self._user_supplied_offset)
