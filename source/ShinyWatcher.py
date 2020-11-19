@@ -342,7 +342,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 # self._mad['logger'].info(f"MSW - Pogo Login set for {worker}:{pogologin}")
 
                 if self._pinguser == 'yes':
-                    worker = self._pluginconfig.get("pingusermapping", worker, fallback=worker)
+                    worker = worker + "/" + self._pluginconfig.get("pingusermapping", worker, fallback=worker) 
 
                 # report shiny encounter
                 if self._os == "android":
