@@ -2,6 +2,8 @@
 
 Get support on this [Discord Server](https://discord.gg/cMZs5tk)
 
+Shiny watcher plugin is not a standalone feature and is not something to put in your phone. It is a feature from a very complex system that you have to understand. If you don't understand the Wiki and how to make your own map, you don't have any way to use it yourself.
+
 Shiny Watcher checks your DB for active Shinies and then sends a notification to Discord if it finds any. It allows you to filter out Pokemon and Workers as well as connect a Login E-Mail to every worker.
 
 Notifications are in the format: `Pokemon-name IV% Level# CP# Gender:symbol; Despawns: Time (time left); Worker name (account/email or PTC)`. On Android devices, the coordinates are embeded so you can copy them by long-pressing (for ~2 seconds). Fast and easy. There's also an option to optimize what is displayed for iOS.
