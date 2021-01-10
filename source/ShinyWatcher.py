@@ -417,7 +417,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 if ((int(remainingminsec[0]) < int(self._mindespawntime)) or (int(remainingminsec[0]) > int(self._maxdespawntime))):
                     self._mad['logger'].info("MSW - shiny found but not reported")
                 self._mad['logger'].info("MSW - despawntime: " + despawntime)
-                self._mad['logger'].info("MSW - remainingminsec: " + remainingminsec[0] + "m" + remainingminsec[1] + "s" )
+                self._mad['logger'].info("MSW - remainingminsec: " + str(remainingminsec[0]) + "m" + str(remainingminsec[1]) + "s" )
 
 
                 # update shiny_history table with reported encounter
