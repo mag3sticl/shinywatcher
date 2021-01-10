@@ -110,11 +110,15 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._webhookurl = self._pluginconfig.get("plugin", "discord_webhookurl", fallback=None)
         self._mask_mail = self._pluginconfig.get("plugin", "mask_mail", fallback='no')
         self._pinguser = self._pluginconfig.get("plugin", "pinguser", fallback='no')
+        self._timeformat = self._pluginconfig.get("plugin", "timeformat", fallback='12')
+        self._mindespawntime = self._pluginconfig.get("plugin", "mindespawntime", fallback=0)
+        self._maxdespawntime = self._pluginconfig.get("plugin", "maxdespawntime", fallback=9999)
         self._catchhelper = self._pluginconfig.get("catchhelper", "activate_catchhelper", fallback='no')
         self._bot_token = self._pluginconfig.get("catchhelper", "bot_token", fallback=None)
         self._include_play = self._pluginconfig.getboolean("catchhelper", "play_button", fallback=True)
         self._include_pause = self._pluginconfig.getboolean("catchhelper", "pause_button", fallback=True)
         self._include_stop = self._pluginconfig.getboolean("catchhelper", "stop_button", fallback=True)
+
 
         # set specified pause time, converting from minutes to seconds
         __pause_time = self._pluginconfig.getint("catchhelper", "pause_time", fallback=5)
@@ -310,7 +314,10 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 # despawn time and remaining min/sec
                 despawndate = result['disappear_time']
                 despawndatelocal = despawndate + self._timezone_offset
-                despawntime = despawndatelocal.strftime("%-I:%M:%S %p")
+                if self._timeformat == '24':
+                    despawntime = despawndatelocal.strftime("%H:%M:%S")
+                else:
+                    despawntime = despawndatelocal.strftime("%-I:%M:%S %p")
                 remainingminsec = "??" # actual despawn time unknown or occurred before this report
                 if self._user_supplied_offset == 0:
                     if despawndate > datetime.utcnow():
@@ -356,8 +363,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                             }
                         ]
                     }
-                    result = requests.post(self._webhookurl, json=data)
-                    self._mad['logger'].info(result)
+                    if not ((int(remainingminsec[0]) < int(self._mindespawntime)) or (int(remainingminsec[0]) > int(self._maxdespawntime))):
+                        result = requests.post(self._webhookurl, json=data)
+                        self._mad['logger'].info(result)
 
                 elif self._os == "ios":
                     data = {
@@ -365,8 +373,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                         "avatar_url": mon_img,
                         "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}"
                     }
-                    result = requests.post(self._webhookurl, json=data)
-                    self._mad['logger'].info(result)
+                    if not ((int(remainingminsec[0]) < self._mindespawntime) or (int(remainingminsec[0]) > self._maxdespawntime)):
+                        result = requests.post(self._webhookurl, json=data)
+                        self._mad['logger'].info(result)
 
                     time.sleep(1)
                     data = {
@@ -374,8 +383,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                         "avatar_url": mon_img,
                         "content": f"```{lat},{lon}```"
                     }
-                    result = requests.post(self._webhookurl, json=data)
-                    self._mad['logger'].info(result)
+                    if not ((int(remainingminsec[0]) < self._mindespawntime) or (int(remainingminsec[0]) > self._maxdespawntime)):
+                        result = requests.post(self._webhookurl, json=data)
+                        self._mad['logger'].info(result)
 
                 elif self._os == "both":
                     data = {
@@ -388,8 +398,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                             }
                         ]
                     }
-                    result = requests.post(self._webhookurl, json=data)
-                    self._mad['logger'].info(result)
+                    if not ((int(remainingminsec[0]) < self._mindespawntime) or (int(remainingminsec[0]) > self._maxdespawntime)):
+                        result = requests.post(self._webhookurl, json=data)
+                        self._mad['logger'].info(result)
 
                     time.sleep(1)
                     data = {
@@ -397,8 +408,15 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                         "avatar_url": mon_img,
                         "content": f"iOS: ```\n{lat},{lon}```"
                     }
-                    result = requests.post(self._webhookurl, json=data)
-                    self._mad['logger'].info(result)
+                    if not ((int(remainingminsec[0]) < self._mindespawntime) or (int(remainingminsec[0]) > self._maxdespawntime)):
+                        result = requests.post(self._webhookurl, json=data)
+                        self._mad['logger'].info(result)
+
+                if ((int(remainingminsec[0]) < self._mindespawntime) or (int(remainingminsec[0]) > self._maxdespawntime)):
+                    self._mad['logger'].info("MSW - shiny found but not reported")
+                    self._mad['logger'].info("MSW - despawntime: " + despawntime)
+                    self._mad['logger'].info("MSW - remainingminsec: " + remainingminsec[0] + "m" + remainingminsec[1] + "s" )
+
 
                 # update shiny_history table with reported encounter
                 reported_data = dict([('encounter_id', encounterid)])
