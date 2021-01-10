@@ -257,7 +257,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
             self._mad['logger'].info("MSW - query DB for shinys")
             query = (
-                "SELECT pokemon.encounter_id, pokemon_id, disappear_time, individual_attack,"
+                 "SELECT pokemon.encounter_id, pokemon_id, form, disappear_time, individual_attack,"
                 " individual_defense, individual_stamina, cp, cp_multiplier, gender, longitude, latitude, t.worker"
                 " FROM pokemon LEFT JOIN trs_stats_detect_mon_raw t ON"
                 " pokemon.encounter_id = t.encounter_id WHERE t.is_shiny = 1 AND pokemon.encounter_id"
@@ -271,6 +271,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 encounterid = result['encounter_id']
                 encid = str(encounterid)
                 pid = str(result['pokemon_id'])
+                ormid=str(result['form'])
 
                 # pokemon cp
                 cpval = str(result['cp'])
@@ -282,7 +283,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     self._mad['logger'].info(f"MSW - Skipping excluded shiny: {mon_name}")
                     continue
 
-                mon_img = f"https://raw.githubusercontent.com/Plaryu/PJSsprites/master/pokemon_icon_{pid.zfill(3)}_00.png"
+                mon_img = f"https://raw.githubusercontent.com/whitewillem/PogoAssets/resized/no_border/pokemon_icon_{pid.zfill(3)}_{formid.zfill(2)}.png"
 
                 self._mad['logger'].info(f"MSW - Reporting shiny: {mon_name}")
 
