@@ -51,6 +51,9 @@ active = true
 discord_webhookurl: https://discord.com/api/webhooks/xxxxxxxx/xxxxxxxxxxxxxxxxxxxxxx
 language = en
 os = android
+timeformat = 24
+mindespawntime = 1
+maxdespawntime = 120
 only_show_workers = ATV01,ATV19,ATV34
 exlude_mons = 1,7,36
 mask_mail = no
