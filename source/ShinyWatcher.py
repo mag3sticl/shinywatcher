@@ -282,7 +282,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     self._mad['logger'].info(f"MSW - Skipping excluded shiny: {mon_name}")
                     continue
 
-                mon_img = f"https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/pokemon_icon_{pid.zfill(3)}_00.png"
+                mon_img = f"https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/pokemon_icon_{pid.zfill(3)}_00_shiny.png"
 
                 self._mad['logger'].info(f"MSW - Reporting shiny: {mon_name}")
 
