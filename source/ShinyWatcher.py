@@ -12,6 +12,7 @@ import json
 import discord
 import asyncio
 import re
+from pogodata import PogoData
 
 class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
     """This plugin is just the identity function: it returns the argument
@@ -272,6 +273,11 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 encid = str(encounterid)
                 pid = str(result['pokemon_id'])
                 formid=str(result['form'])
+                
+                # find pokemon asset
+                data = PogoData()
+                mon = data.get_mon(id=int(pid), form=int(formid))
+                iconname = mon.asset
 
                 # pokemon cp
                 cpval = str(result['cp'])
@@ -283,9 +289,14 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     self._mad['logger'].info(f"MSW - Skipping excluded shiny: {mon_name}")
                     continue
 
-                mon_img = f"https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/pokemon_icon_{pid.zfill(3)}_{formid.zfill(2)}_shiny.png"
+                mon_img = f"https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/{iconname}_shiny.png"
 
                 self._mad['logger'].info(f"MSW - Reporting shiny: {mon_name}")
+                self._mad['logger'].debug(f"MSW - PokemonID: {pid}")
+                self._mad['logger'].debug(f"MSW - FormID: {formid}")
+                self._mad['logger'].debug(f"MSW - AssetID: {iconname}")
+                self._mad['logger'].debug(f"MSW - Img URL: {mon_img}")
+                self._mad['logger'].debug(f"MSW - Encounter ID: {encid}")
 
                 # pokemon gender
                 gendericon = '⚪' # genderless
