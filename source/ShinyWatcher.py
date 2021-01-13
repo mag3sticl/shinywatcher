@@ -271,7 +271,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 encounterid = result['encounter_id']
                 encid = str(encounterid)
                 pid = str(result['pokemon_id'])
-                ormid=str(result['form'])
+                formid=str(result['form'])
 
                 # pokemon cp
                 cpval = str(result['cp'])
@@ -283,7 +283,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     self._mad['logger'].info(f"MSW - Skipping excluded shiny: {mon_name}")
                     continue
 
-                mon_img = f"https://raw.githubusercontent.com/whitewillem/PogoAssets/resized/no_border/pokemon_icon_{pid.zfill(3)}_{formid.zfill(2)}.png"
+                mon_img = f"https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/pokemon_icon_{pid.zfill(3)}_{formid.zfill(2)}_shiny.png"
 
                 self._mad['logger'].info(f"MSW - Reporting shiny: {mon_name}")
 
@@ -351,7 +351,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 # self._mad['logger'].info(f"MSW - Pogo Login set for {worker}:{pogologin}")
 
                 if self._pinguser == 'yes':
-                    worker = worker + "/" + self._pluginconfig.get("pingusermapping", worker, fallback=worker) 
+                    worker = worker + "/" + self._pluginconfig.get("pingusermapping", worker, fallback=worker)
 
                 # report shiny encounter
                 if self._os == "android":
@@ -367,7 +367,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     }
                     if remainingminsec == '??':
                         result = requests.post(self._webhookurl, json=data)
-                        self._mad['logger'].info(result)					    
+                        self._mad['logger'].info(result)
                     elif not ((int(remainingminsec[0]) < int(self._mindespawntime)) or (int(remainingminsec[0]) > int(self._maxdespawntime))):
                         result = requests.post(self._webhookurl, json=data)
                         self._mad['logger'].info(result)
@@ -380,7 +380,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     }
                     if remainingminsec == '??':
                         result = requests.post(self._webhookurl, json=data)
-                        self._mad['logger'].info(result)					    
+                        self._mad['logger'].info(result)
                     elif  not ((int(remainingminsec[0]) < int(self._mindespawntime)) or (int(remainingminsec[0]) > int(self._maxdespawntime))):
                         result = requests.post(self._webhookurl, json=data)
                         self._mad['logger'].info(result)
@@ -393,7 +393,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     }
                     if remainingminsec == '??':
                         result = requests.post(self._webhookurl, json=data)
-                        self._mad['logger'].info(result)					    
+                        self._mad['logger'].info(result)
                     elif  not ((int(remainingminsec[0]) < int(self._mindespawntime)) or (int(remainingminsec[0]) > int(self._maxdespawntime))):
                         result = requests.post(self._webhookurl, json=data)
                         self._mad['logger'].info(result)
@@ -411,7 +411,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     }
                     if remainingminsec == '??':
                         result = requests.post(self._webhookurl, json=data)
-                        self._mad['logger'].info(result)					    
+                        self._mad['logger'].info(result)
                     elif  not ((int(remainingminsec[0]) < int(self._mindespawntime)) or (int(remainingminsec[0]) > int(self._maxdespawntime))):
                         result = requests.post(self._webhookurl, json=data)
                         self._mad['logger'].info(result)
@@ -424,15 +424,15 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     }
                     if remainingminsec == '??':
                         result = requests.post(self._webhookurl, json=data)
-                        self._mad['logger'].info(result)					    
+                        self._mad['logger'].info(result)
                     elif  not ((int(remainingminsec[0]) < int(self._mindespawntime)) or (int(remainingminsec[0]) > int(self._maxdespawntime))):
                         result = requests.post(self._webhookurl, json=data)
                         self._mad['logger'].info(result)
 
-                self._mad['logger'].info("MSW - debug remaining time")                
+                self._mad['logger'].info("MSW - debug remaining time")
 
                 if remainingminsec == '??':
-                    self._mad['logger'].info("MSW - shiny has unknow despawntime")					    
+                    self._mad['logger'].info("MSW - shiny has unknow despawntime")
                 elif ((int(remainingminsec[0]) < int(self._mindespawntime)) or (int(remainingminsec[0]) > int(self._maxdespawntime))):
                     self._mad['logger'].info("MSW - shiny found but not reported")
                     self._mad['logger'].info("MSW - despawntime: " + despawntime)
