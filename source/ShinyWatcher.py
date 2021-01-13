@@ -215,6 +215,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         return stripped
 
     def MadShinyWatcher(self):
+        # Init modul PogoData(ccev)
+        PogoDataObj = PogoData()
+
         devicemapping = self._mad['mapping_manager'].get_all_devicemappings()
         self._mad['logger'].debug(devicemapping)
 
@@ -275,8 +278,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                 formid=str(result['form'])
                 
                 # find pokemon asset
-                data = PogoData()
-                mon = data.get_mon(id=int(pid), form=int(formid))
+                mon = PogoDataObj.get_mon(id=int(pid), form=int(formid))
                 iconname = mon.asset
 
                 # pokemon cp
