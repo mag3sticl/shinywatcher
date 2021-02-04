@@ -1,4 +1,4 @@
 discord==1.0.1
 discord-webhook==0.8.0
 discord.py==1.5.0
-pogodata>=0.0.2
+pogodata>=0.5.2
