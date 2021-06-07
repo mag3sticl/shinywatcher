@@ -367,11 +367,12 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     worker = worker + "/" + self._pluginconfig.get("pingusermapping", worker, fallback=worker)
 
                 # report shiny encounter
+                webhookusername = "Shiny {} found".format(mon_name)
                 if self._os == "android":
                     data = {
-                        "username": mon_name,
+                        "username": webhookusername,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}",
+                        "content": f"**{mon_name}** {gendericon}\n**CP:** {cpval} **IV:** {iv}% **LVL:** {mon_level}\n**Despawn:** {despawntime} ({remainingminsec[0]}m {remainingminsec[1]}s left)\n**Account: ** {worker}/{pogologin}",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
@@ -387,9 +388,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
                 elif self._os == "ios":
                     data = {
-                        "username": mon_name,
+                        "username": webhookusername,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}"
+                        "content": f"**{mon_name}** {gendericon}\n**CP:** {cpval} **IV:** {iv}% **LVL:** {mon_level}\n**Despawn:** {despawntime} ({remainingminsec[0]}m {remainingminsec[1]}s left)\n**Account: ** {worker}/{pogologin}"
                     }
                     if remainingminsec == '??':
                         result = requests.post(self._webhookurl, json=data)
@@ -400,7 +401,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
                     time.sleep(1)
                     data = {
-                        "username": mon_name,
+                        "username": webhookusername,
                         "avatar_url": mon_img,
                         "content": f"```{lat},{lon}```"
                     }
@@ -413,9 +414,9 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
                 elif self._os == "both":
                     data = {
-                        "username": mon_name,
+                        "username": webhookusername,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** {iv}% L{mon_level} CP{cpval} Gender:{gendericon}\nDespawns: **{despawntime}** ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}\n\n Android:",
+                        "content": f"**{mon_name}** {gendericon}\n**CP:** {cpval} **IV:** {iv}% **LVL:** {mon_level}\n**Despawn:** {despawntime} ({remainingminsec[0]}m {remainingminsec[1]}s left)\n**Account: ** {worker}/{pogologin}\n\n Android:",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
@@ -431,7 +432,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
                     time.sleep(1)
                     data = {
-                        "username": mon_name,
+                        "username": webhookusername,
                         "avatar_url": mon_img,
                         "content": f"iOS: ```\n{lat},{lon}```"
                     }
