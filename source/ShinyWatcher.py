@@ -372,7 +372,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": webhookusername,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** {gendericon}\n**CP:** {cpval} **IV:** {iv}% **LVL:** {mon_level}\n**Despawn:** {despawntime} ({remainingminsec[0]}m {remainingminsec[1]}s left)\n**Account: ** {worker}/{pogologin}",
+                        "content": f"**{mon_name}** {gendericon}\n**CP:** {cpval} **IV:** {iv}% **LVL:** {mon_level}\n**Despawn:** {despawntime} ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
@@ -390,7 +390,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": webhookusername,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** {gendericon}\n**CP:** {cpval} **IV:** {iv}% **LVL:** {mon_level}\n**Despawn:** {despawntime} ({remainingminsec[0]}m {remainingminsec[1]}s left)\n**Account: ** {worker}/{pogologin}"
+                        "content": f"**{mon_name}** {gendericon}\n**CP:** {cpval} **IV:** {iv}% **LVL:** {mon_level}\n**Despawn:** {despawntime} ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}"
                     }
                     if remainingminsec == '??':
                         result = requests.post(self._webhookurl, json=data)
@@ -416,7 +416,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
                     data = {
                         "username": webhookusername,
                         "avatar_url": mon_img,
-                        "content": f"**{mon_name}** {gendericon}\n**CP:** {cpval} **IV:** {iv}% **LVL:** {mon_level}\n**Despawn:** {despawntime} ({remainingminsec[0]}m {remainingminsec[1]}s left)\n**Account: ** {worker}/{pogologin}\n\n Android:",
+                        "content": f"**{mon_name}** {gendericon}\n**CP:** {cpval} **IV:** {iv}% **LVL:** {mon_level}\n**Despawn:** {despawntime} ({remainingminsec[0]}m {remainingminsec[1]}s left)\n{worker}/{pogologin}\n\n Android:",
                         "embeds": [
                             {
                             "description": f"{lat},{lon}"
@@ -527,7 +527,7 @@ class CatchHelperBot(discord.Client):
             self._mad['logger'].debug("MSW - CatchHelperBot ignored reaction")
             return
 
-        device_origin_to_handle = re.split("\n", reaction.message.content)[2].split("/", 1)[0]
+        device_origin_to_handle = re.split("\n", reaction.message.content)[3].split("/", 1)[0]
 
         if self._include_pause and reaction.emoji == self._emoji_pause:
             self._mad['logger'].info(f"MSW - Pausing device: " + device_origin_to_handle + " for " + str(self._pausetime) + " seconds.")
