@@ -114,9 +114,6 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
         self._timeformat = self._pluginconfig.get("plugin", "timeformat", fallback='12')
         self._mindespawntime = self._pluginconfig.get("plugin", "mindespawntime", fallback=0)
         self._maxdespawntime = self._pluginconfig.get("plugin", "maxdespawntime", fallback=9999)
-        self._madmin_url = self._pluginconfig.get("plugin", "madmin_url", fallback=None)
-        self._madmin_user = self._pluginconfig.get("plugin", "madmin_user", fallback=None)
-        self._madmin_pass = self._pluginconfig.get("plugin", "madmin_pass", fallback=None)
         self._catchhelper = self._pluginconfig.get("catchhelper", "activate_catchhelper", fallback='no')
         self._bot_token = self._pluginconfig.get("catchhelper", "bot_token", fallback=None)
         self._include_play = self._pluginconfig.getboolean("catchhelper", "play_button", fallback=True)
@@ -171,7 +168,7 @@ class ShinyWatcher(mapadroid.utils.pluginBase.Plugin):
 
     def chThread(self):
         bot = CatchHelperBot(self._pause_time, self._include_play, self._include_pause, self._include_stop,
-            self._device_ids, self._mad, self._madmin_url, self._madmin_user, self._madmin_pass, description="Bot to restart the PoGo app")
+            self._device_ids, self._mad, description="Bot to restart the PoGo app")
 
         asyncio.get_child_watcher()
         loop = asyncio.get_event_loop()
@@ -490,9 +487,6 @@ class CatchHelperBot(discord.Client):
         self._emoji_paused = '⏸️'
         self._emoji_arrow = '➡️'
         self._emoji_complete = '✔️'
-        self._madmin_url = madmin_url
-        self._madmin_user = madmin_user
-        self._madmin_pass = madmin_pass
 
     def run(self, BOT_TOKEN):
         super().run(BOT_TOKEN, reconnect=True)
@@ -535,28 +529,16 @@ class CatchHelperBot(discord.Client):
 
         device_origin_to_handle = re.split("\n", reaction.message.content)[3].split("/", 1)[0]
 
-        # obtain device_id and compile url str for pause/stop
-        self._mad['logger'].info("MSW - obtain device id for catchelper")
-        query = "SELECT device_id FROM settings_device where name = %s"
-        self._mad['logger'].debug("MSW - DB query: " + query)
-        results = self._mad['db_wrapper'].autofetch_value(query, (str(device_origin_to_handle)))
-        self._mad['logger'].debug("MSW - DB result: " + str(results))
-        url = self._madmin_url + "/api/device/" + str(results)
-        headers = {"Content-Type": "application/json-rpc"}
-
         if self._include_pause and reaction.emoji == self._emoji_pause:
             self._mad['logger'].info(f"MSW - Pausing device: " + device_origin_to_handle + " for " + str(self._pausetime) + " seconds.")
             await reaction.message.add_reaction(self._emoji_arrow)
-            data = {"call":"device_state","args":{"active":0}}
-            requests.post(url, headers=headers, json=data, auth=(self._madmin_user, self._madmin_pass))
-            await asyncio.sleep(5)
-            await reaction.message.add_reaction(self._emoji_paused)
+            self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 0)
             self.stopPogo(device_origin_to_handle)
+            await reaction.message.add_reaction(self._emoji_paused)
             await asyncio.sleep(self._pausetime) # time.sleep(self._pausetime)
             self._mad['logger'].info(f"MSW - Re-starting device: " + device_origin_to_handle + " after pause.")
             self.startPogo(device_origin_to_handle)
-            data = {"call":"device_state","args":{"active":1}}
-            requests.post(url, headers=headers, json=data, auth=(self._madmin_user, self._madmin_pass))
+            self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 1)
             await reaction.message.remove_reaction(self._emoji_arrow, self.user)
             await reaction.message.remove_reaction(self._emoji_paused, self.user)
             await reaction.message.add_reaction(self._emoji_complete)
@@ -565,17 +547,14 @@ class CatchHelperBot(discord.Client):
             self._mad['logger'].info(f"MSW - Starting device: " + device_origin_to_handle)
             await reaction.message.add_reaction(self._emoji_arrow)
             self.startPogo(device_origin_to_handle)
-            data = {"call":"device_state","args":{"active":1}}
-            requests.post(url, headers=headers, json=data, auth=(self._madmin_user, self._madmin_pass))
+            self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 1)
             self._mad['logger'].info(f"MSW - Starting device: " + device_origin_to_handle + " is complete.")
             await reaction.message.remove_reaction(self._emoji_arrow, self.user)
             await reaction.message.add_reaction(self._emoji_complete)
         elif self._include_stop and reaction.emoji == self._emoji_stop:
             self._mad['logger'].info(f"MSW - Stopping device: " + device_origin_to_handle)
             await reaction.message.add_reaction(self._emoji_arrow)
-            data = {"call":"device_state","args":{"active":0}}
-            requests.post(url, headers=headers, json=data, auth=(self._madmin_user, self._madmin_pass))
-            await asyncio.sleep(5)
+            self._mad['data_manager'].set_device_state(self._deviceids[device_origin_to_handle], 0)
             self.stopPogo(device_origin_to_handle)
             self._mad['logger'].info(f"MSW - Stopping device: " + device_origin_to_handle + " is complete.")
             await reaction.message.remove_reaction(self._emoji_arrow, self.user)
